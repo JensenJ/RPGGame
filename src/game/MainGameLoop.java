@@ -6,6 +6,7 @@ import render.DisplayManager;
 import render.Loader;
 import render.RawModel;
 import render.Renderer;
+import shaders.StaticShader;
 
 public class MainGameLoop {
 
@@ -13,6 +14,8 @@ public class MainGameLoop {
 		DisplayManager.CreateDisplay();
 		Loader loader = new Loader();
 		Renderer renderer = new Renderer();
+		
+		StaticShader shader = new StaticShader();
 		
 		float[] vertices = {
 				-0.5f, 0.5f, 0f,
@@ -29,15 +32,15 @@ public class MainGameLoop {
 		RawModel model = loader.loadToVAO(vertices, indices);
 		
 		while(!Display.isCloseRequested()) {
+			
 			renderer.Prepare();
-			//Game logic
-			//Render
+			shader.Start();
 			renderer.Render(model);
-			
-			
+			shader.Stop();
 			DisplayManager.UpdateDisplay();
 		}
 		
+		shader.CleanUp();
 		loader.CleanUp();
 		DisplayManager.CloseDisplay();
 	}
