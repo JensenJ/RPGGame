@@ -11,6 +11,7 @@ import entities.Entity;
 import models.RawModel;
 import models.TexturedModel;
 import shaders.StaticShader;
+import textures.ModelTexture;
 import utilities.Maths;
 
 public class Renderer {
@@ -46,14 +47,20 @@ public class Renderer {
 				entity.GetScale());
 		shader.LoadTransformationMatrix(transformationMatrix);
 		
+		ModelTexture texture = model.GetTexture();
+		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
+		
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
+		GL20.glEnableVertexAttribArray(2);
+		
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.GetTexture().GetID());
 		GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
 		
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
+		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
 	}
 	

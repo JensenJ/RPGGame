@@ -5,6 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import entities.Camera;
 import entities.Entity;
+import entities.Light;
 import models.RawModel;
 import models.TexturedModel;
 import render.DisplayManager;
@@ -26,20 +27,28 @@ public class MainGameLoop {
 		
 		
 		ModelData modelData = OBJFileLoader.LoadOBJ("TestCube");
-		RawModel model = loader.loadToVAO(modelData.GetVertices(), modelData.GetTextureCoords(), modelData.GetIndices());
+		RawModel model = loader.loadToVAO(
+				modelData.GetVertices(), 
+				modelData.GetTextureCoords(), 
+				modelData.GetNormals(), 
+				modelData.GetIndices());
 		
-		ModelTexture texture = new ModelTexture(loader.loadTexture("image"));
-		TexturedModel texturedModel = new TexturedModel(model, texture);
+		TexturedModel texturedModel = new TexturedModel(model, new ModelTexture(loader.loadTexture("image")));
+		ModelTexture texture = texturedModel.GetTexture();
+		texture.SetShineDamper(10);
+		texture.SetReflectivity(1);
 		
-		Entity entity = new Entity(texturedModel, new Vector3f(0, 0, -5), 0, 0, 0, 1);
+		Entity entity = new Entity(texturedModel, new Vector3f(0, 0, -25), 0, 0, 0, 1);
+		Light light = new Light(new Vector3f(0, 0, -20), new Vector3f(1, 1, 1));
 		
 		Camera camera = new Camera();
 		
 		while(!Display.isCloseRequested()) {
-			entity.IncreaseRotation(1, 0.1f, 0);
+			entity.IncreaseRotation(0, 1, 0);
 			camera.Move();
 			renderer.Prepare();
 			shader.Start();
+			shader.LoadLight(light);
 			shader.LoadViewMatrix(camera);
 			renderer.Render(entity, shader);
 			shader.Stop();
