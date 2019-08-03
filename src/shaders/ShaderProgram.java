@@ -29,6 +29,7 @@ public abstract class ShaderProgram {
 		BindAttributes();
 		GL20.glLinkProgram(programID);
 		GL20.glValidateProgram(programID);
+		
 		GetAllUniformLocations();
 	}
 	

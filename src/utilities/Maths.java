@@ -1,7 +1,10 @@
 package utilities;
 
+import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
+
+import entities.Camera;
 
 public class Maths {
 
@@ -13,6 +16,18 @@ public class Maths {
 		Matrix4f.rotate((float) Math.toRadians(ry), new Vector3f(0, 1, 0), matrix, matrix);
 		Matrix4f.rotate((float) Math.toRadians(rz), new Vector3f(0, 0, 1), matrix, matrix);
 		Matrix4f.scale(new Vector3f(scale, scale, scale), matrix, matrix);
+		return matrix;
+	}
+	
+	public static Matrix4f CreateViewMatrix(Camera camera) {
+		Matrix4f matrix = new Matrix4f();
+		matrix.setIdentity();
+		Matrix4f.rotate((float) Math.toRadians(camera.GetPitch()), new Vector3f(1, 0, 0), matrix, matrix);
+		Matrix4f.rotate((float) Math.toRadians(camera.GetYaw()), new Vector3f(0, 1, 0), matrix, matrix);
+		Matrix4f.rotate((float) Math.toRadians(camera.GetRoll()), new Vector3f(0, 0, 1), matrix, matrix);
+		Vector3f camPos = camera.GetPosition();
+		Vector3f negativeCamPos = new Vector3f(-camPos.x, -camPos.y, -camPos.z);
+		Matrix4f.translate(negativeCamPos, matrix, matrix);
 		return matrix;
 	}
 }
