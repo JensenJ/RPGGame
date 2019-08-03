@@ -1,5 +1,8 @@
 package render;
 
+import java.util.List;
+import java.util.Map;
+
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -20,8 +23,12 @@ public class Renderer {
 	private static final float NEAR_PLANE = 0.1f;
 	private static final float FAR_PLANE = 1000.0f;
 	private Matrix4f projectionMatrix;
+	private StaticShader shader;
 	
 	public Renderer(StaticShader shader) {
+		this.shader = shader;
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		GL11.glCullFace(GL11.GL_BACK);
 		CreateProjectionMatrix();
 		shader.Start();
 		shader.LoadProjectionMatrix(projectionMatrix);
@@ -35,10 +42,39 @@ public class Renderer {
 		
 	}
 	
-	public void Render(Entity entity, StaticShader shader) {
-		TexturedModel model = entity.GetModel();
+	public void Render(Map<TexturedModel, List<Entity>> entities) {
+		for(TexturedModel model:entities.keySet()) {
+			PrepareTexturedModel(model);
+			List<Entity> batch = entities.get(model);
+			for(Entity entity:batch) {
+				PrepareInstance(entity);
+				GL11.glDrawElements(GL11.GL_TRIANGLES, model.GetRawModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+			}
+			UnbindTexturedModel();
+		}
+	}
+	
+	private void PrepareTexturedModel(TexturedModel model) {
 		RawModel rawModel = model.GetRawModel();
 		GL30.glBindVertexArray(rawModel.getVaoID());
+		GL20.glEnableVertexAttribArray(0);
+		GL20.glEnableVertexAttribArray(1);
+		GL20.glEnableVertexAttribArray(2);
+		
+		ModelTexture texture = model.GetTexture();
+		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
+		GL13.glActiveTexture(GL13.GL_TEXTURE0);
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.GetTexture().GetID());
+	}
+	
+	private void UnbindTexturedModel() {
+		GL20.glDisableVertexAttribArray(0);
+		GL20.glDisableVertexAttribArray(1);
+		GL20.glDisableVertexAttribArray(2);
+		GL30.glBindVertexArray(0);
+	}
+	
+	private void PrepareInstance(Entity entity) {
 		Matrix4f transformationMatrix = Maths.CreateTransformationMatrix(
 				entity.GetPosition(), 
 				entity.GetRotX(), 
@@ -46,22 +82,6 @@ public class Renderer {
 				entity.GetRotZ(), 
 				entity.GetScale());
 		shader.LoadTransformationMatrix(transformationMatrix);
-		
-		ModelTexture texture = model.GetTexture();
-		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
-		
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
-		GL20.glEnableVertexAttribArray(2);
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.GetTexture().GetID());
-		GL11.glDrawElements(GL11.GL_TRIANGLES, rawModel.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-		
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL20.glDisableVertexAttribArray(2);
-		GL30.glBindVertexArray(0);
 	}
 	
 	private void CreateProjectionMatrix() {
