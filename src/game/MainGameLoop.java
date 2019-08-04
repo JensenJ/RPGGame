@@ -1,13 +1,9 @@
 package game;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
 
 import entities.Camera;
-import entities.Entity;
 import entities.Light;
 import models.RawModel;
 import models.TexturedModel;
@@ -18,6 +14,8 @@ import terrain.Terrain;
 import obj.ModelData;
 import obj.OBJFileLoader;
 import textures.ModelTexture;
+import textures.TerrainTexture;
+import textures.TerrainTexturePack;
 
 public class MainGameLoop {
 
@@ -42,18 +40,19 @@ public class MainGameLoop {
 		
 		Light light = new Light(new Vector3f(3000, 2000, 2000), new Vector3f(1, 1, 1));
 		
-		//Entity entity = new Entity(texturedModel, new Vector3f(0.5f, 0.5f, -0.5f), 0, 0, 0, 1);
-		//Entity entity1 = new Entity(texturedModel, new Vector3f(1.5f, 0.5f, -0.5f), 0, 0, 0, 1);
+		//Entity entity1 = new Entity(texturedModel, new Vector3f(0.5f, 0.5f, -0.5f), 0, 0, 0, 1);
+		//Entity entity2 = new Entity(texturedModel, new Vector3f(1.5f, 0.5f, -0.5f), 0, 0, 0, 1);
 		
-		List<Entity> allCubes = new ArrayList<Entity>();
+		//Terrain Texturing
+		TerrainTexture background = new TerrainTexture(loader.loadTexture("grass"));
+		TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirt"));
+		TerrainTexture gTexture = new TerrainTexture(loader.loadTexture("sand"));
+		TerrainTexture bTexture = new TerrainTexture(loader.loadTexture("water"));
 		
-		for(int i = 0; i < 16; i++) {
-			for(int j = 0; j < 16; j++) {
-				allCubes.add(new Entity(texturedModel, new Vector3f(i + 0.5f, 1.5f, -j - 0.5f), 0, 0, 0, 1));
-			}
-		}
+		TerrainTexturePack texturePack = new TerrainTexturePack(background, rTexture, gTexture, bTexture);
+		TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("blendMap"));
 		
-		Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("dirt")));
+		Terrain terrain1 = new Terrain(0, -1, loader, texturePack, blendMap);
 		//Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("image")));
 		
 		Camera camera = new Camera();
@@ -64,10 +63,6 @@ public class MainGameLoop {
 			//entity.IncreaseRotation(0, 0, 0);
 			
 			camera.Move(0.1f);
-
-			for(Entity cube : allCubes) {
-				renderer.ProcessEntity(cube);
-			}
 			
 			renderer.ProcessTerrain(terrain1);
 			//renderer.ProcessTerrain(terrain2);
