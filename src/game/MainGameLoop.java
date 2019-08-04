@@ -2,7 +2,6 @@ package game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
@@ -15,6 +14,7 @@ import models.TexturedModel;
 import render.DisplayManager;
 import render.Loader;
 import render.MasterRenderer;
+import terrain.Terrain;
 import obj.ModelData;
 import obj.OBJFileLoader;
 import textures.ModelTexture;
@@ -34,34 +34,41 @@ public class MainGameLoop {
 		
 		TexturedModel texturedModel = new TexturedModel(model, new ModelTexture(loader.loadTexture("image")));
 		ModelTexture texture = texturedModel.GetTexture();
-		texture.SetShineDamper(10);
-		texture.SetReflectivity(1);
+		texture.SetShineDamper(5);
+		texture.SetReflectivity(0.1f);
 		
-		Entity entity = new Entity(texturedModel, new Vector3f(0, 0, -25), 0, 0, 0, 1);
-		Light light = new Light(new Vector3f(0, 0, -20), new Vector3f(1, 1, 1));
+		Light light = new Light(new Vector3f(3000, 2000, 2000), new Vector3f(1, 1, 1));
+		
+		//Entity entity = new Entity(texturedModel, new Vector3f(0.5f, 0.5f, -0.5f), 0, 0, 0, 1);
+		//Entity entity1 = new Entity(texturedModel, new Vector3f(1.5f, 0.5f, -0.5f), 0, 0, 0, 1);
 		
 		List<Entity> allCubes = new ArrayList<Entity>();
-		Random random = new Random();
 		
-		for(int i = 0; i < 200; i++) {
-			float x = random.nextFloat() * 100 - 50;
-			float y = random.nextFloat() * 100 - 50;
-			float z = random.nextFloat() * -300;
-			allCubes.add(new Entity(texturedModel, new Vector3f(x, y, z), random.nextFloat() * 180, random.nextFloat() * 180, 0, 1));
+		for(int i = 0; i < 16; i++) {
+			for(int j = 0; j < 16; j++) {
+				allCubes.add(new Entity(texturedModel, new Vector3f(i + 0.5f, 1.5f, -j - 0.5f), 0, 0, 0, 1));
+			}
 		}
+		
+		Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("image")));
+		//Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("image")));
 		
 		Camera camera = new Camera();
 		
 		MasterRenderer renderer = new MasterRenderer();
 		
 		while(!Display.isCloseRequested()) {
-			entity.IncreaseRotation(0, 1, 0);
-			camera.Move();
+			//entity.IncreaseRotation(0, 0, 0);
+			
+			camera.Move(0.1f);
 
 			for(Entity cube : allCubes) {
-				
 				renderer.ProcessEntity(cube);
 			}
+			
+			renderer.ProcessTerrain(terrain1);
+			//renderer.ProcessTerrain(terrain2);
+			
 			
 			renderer.Render(light, camera);
 			
