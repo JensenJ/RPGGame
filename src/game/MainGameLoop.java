@@ -32,10 +32,13 @@ public class MainGameLoop {
 				modelData.GetNormals(), 
 				modelData.GetIndices());
 		
-		TexturedModel texturedModel = new TexturedModel(model, new ModelTexture(loader.loadTexture("image")));
+		TexturedModel texturedModel = new TexturedModel(model, new ModelTexture(loader.loadTexture("dirt")));
 		ModelTexture texture = texturedModel.GetTexture();
 		texture.SetShineDamper(5);
 		texture.SetReflectivity(0.1f);
+		
+		//texture.SetTransparencyState(true);
+		//texture.SetFakeLightingState(true);
 		
 		Light light = new Light(new Vector3f(3000, 2000, 2000), new Vector3f(1, 1, 1));
 		
@@ -50,7 +53,7 @@ public class MainGameLoop {
 			}
 		}
 		
-		Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("image")));
+		Terrain terrain1 = new Terrain(0, -1, loader, new ModelTexture(loader.loadTexture("dirt")));
 		//Terrain terrain2 = new Terrain(-1, -1, loader, new ModelTexture(loader.loadTexture("image")));
 		
 		Camera camera = new Camera();

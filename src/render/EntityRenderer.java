@@ -49,12 +49,17 @@ public class EntityRenderer {
 		GL20.glEnableVertexAttribArray(2);
 		
 		ModelTexture texture = model.GetTexture();
+		if(texture.GetTransparencyState() == true) {
+			MasterRenderer.DisableCulling();
+		}
+		shader.LoadFakeLighting(texture.GetFakeLightingState());
 		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.GetTexture().GetID());
 	}
 	
 	private void UnbindTexturedModel() {
+		MasterRenderer.EnableCulling();
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
 		GL20.glDisableVertexAttribArray(2);
