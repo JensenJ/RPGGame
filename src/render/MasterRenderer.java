@@ -8,6 +8,7 @@ import java.util.Map;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 
 import entities.Camera;
 import entities.Entity;
@@ -22,6 +23,10 @@ public class MasterRenderer {
 	private static final float FOV = 70.0f;
 	private static final float NEAR_PLANE = 0.1f;
 	private static final float FAR_PLANE = 1000.0f;
+	
+	private static final Vector3f SKY_COLOUR = new Vector3f(0.5f, 0.8f, 0.8f);
+	private static final float FOG_DENSITY = 0.0035f;
+	private static final float FOG_GRADIENT = 5.0f;
 	
 	private Matrix4f projectionMatrix;
 	
@@ -55,6 +60,7 @@ public class MasterRenderer {
 		
 		//Entities
 		shader.Start();
+		shader.LoadSkySettings(SKY_COLOUR, FOG_DENSITY, FOG_GRADIENT);
 		shader.LoadLight(sun);
 		shader.LoadViewMatrix(camera);
 		renderer.Render(entities);
@@ -62,6 +68,7 @@ public class MasterRenderer {
 		
 		//Terrains
 		terrainShader.Start();
+		terrainShader.LoadSkySettings(SKY_COLOUR, FOG_DENSITY, FOG_GRADIENT);
 		terrainShader.LoadLight(sun);
 		terrainShader.LoadViewMatrix(camera);
 		terrainRenderer.Render(terrains);
@@ -90,7 +97,7 @@ public class MasterRenderer {
 	public void Prepare() {
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		GL11.glClearColor(1, 0, 0, 1);
+		GL11.glClearColor(SKY_COLOUR.x, SKY_COLOUR.y, SKY_COLOUR.z, 1);
 		
 	}
 	
