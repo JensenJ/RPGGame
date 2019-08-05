@@ -6,6 +6,13 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Camera {
 
+	private static final float MAX_ZOOM = 70.0f;
+	private static final float MIN_ZOOM = 10.0f;
+	
+	private static final float MAX_PITCH = 70.0f;
+	private static final float MIN_PITCH = 25.0f;
+	
+	
 	private float distanceFromPlayer = 50;
 	private float angleAroundPlayer = 0;
 	
@@ -19,14 +26,22 @@ public class Camera {
 	}
 	
 	public void Move() {
+		
+		if(Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
+			CalculateAngleAroundPlayer();
+			if(Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_S) 
+					|| Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_D)){
+				player.IncreaseRotation(0, angleAroundPlayer, 0);
+				angleAroundPlayer = 0;
+			}
+		}else if(!Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
+			angleAroundPlayer /= 1.2f;
+			if(angleAroundPlayer >= -0.5f && angleAroundPlayer <= 0.5f)
+				angleAroundPlayer = 0;
+		}
+		
 		CalculateZoom();
 		CalculatePitch();
-		
-		if(Keyboard.isKeyDown(Keyboard.KEY_LMENU)) {
-			CalculateAngleAroundPlayer();
-		}else {
-			angleAroundPlayer = 0;
-		}
 		
 		float horizontalDist = CalculateHorizontalDistance();
 		float verticalDist = CalculateVerticalDistance();
@@ -61,15 +76,23 @@ public class Camera {
 	private void CalculateZoom() {
 		float zoomLevel = Mouse.getDWheel() * 0.025f;
 		distanceFromPlayer -= zoomLevel;
+		
+		if(distanceFromPlayer > MAX_ZOOM) {
+			distanceFromPlayer = MAX_ZOOM;
+		}
+		
+		if(distanceFromPlayer < MIN_ZOOM) {
+			distanceFromPlayer = MIN_ZOOM;
+		}
 	}
 	
 	private void CalculatePitch() {
 		float pitchChange = Mouse.getDY() * 0.1f;
 		pitch -= pitchChange;
-		if(pitch < 25)
-			pitch = 25;
-		else if(pitch > 70)
-			pitch = 70;
+		if(pitch < MIN_PITCH)
+			pitch = MIN_PITCH;
+		else if(pitch > MAX_PITCH)
+			pitch = MAX_PITCH;
 	}
 	
 	private void CalculateAngleAroundPlayer() {		

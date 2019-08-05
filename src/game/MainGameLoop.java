@@ -61,14 +61,14 @@ public class MainGameLoop {
 		
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
-				terrains.add(new Terrain(i, -j -1, loader, texturePack, blendMap));
+				terrains.add(new Terrain(i, -j - 1, loader, texturePack, blendMap));
 			}
 		}
 		
 		//Terrain terrain1 = new Terrain(0, -1, loader, texturePack, blendMap);
 		//Terrain terrain2 = new Terrain(-1, -1, loader, texturePack, blendMap);
 		
-		Player player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 0, 0, 1);
+		Player player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
 		Camera camera = new Camera(player);
 		
 		MasterRenderer renderer = new MasterRenderer();
