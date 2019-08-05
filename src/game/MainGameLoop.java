@@ -27,7 +27,7 @@ public class MainGameLoop {
 		DisplayManager.CreateDisplay();
 		Loader loader = new Loader();
 		
-		ModelData modelData = OBJFileLoader.LoadOBJ("dragon");
+		ModelData modelData = OBJFileLoader.LoadOBJ("TestCube");
 		RawModel model = loader.loadToVAO(
 				modelData.GetVertices(), 
 				modelData.GetTextureCoords(), 

@@ -1,5 +1,6 @@
 package entities;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -20,7 +21,13 @@ public class Camera {
 	public void Move() {
 		CalculateZoom();
 		CalculatePitch();
-		CalculateAngleAroundPlayer();
+		
+		if(Keyboard.isKeyDown(Keyboard.KEY_LMENU)) {
+			CalculateAngleAroundPlayer();
+		}else {
+			angleAroundPlayer = 0;
+		}
+		
 		float horizontalDist = CalculateHorizontalDistance();
 		float verticalDist = CalculateVerticalDistance();
 		CalculateCameraPosition(horizontalDist, verticalDist);
@@ -52,20 +59,20 @@ public class Camera {
 	}
 	
 	private void CalculateZoom() {
-		float zoomLevel = Mouse.getDWheel() * 0.1f;
+		float zoomLevel = Mouse.getDWheel() * 0.025f;
 		distanceFromPlayer -= zoomLevel;
 	}
 	
 	private void CalculatePitch() {
 		float pitchChange = Mouse.getDY() * 0.1f;
 		pitch -= pitchChange;
-		if(pitch < 0)
-			pitch = 0;
-		else if(pitch > 90)
-			pitch = 90;
+		if(pitch < 25)
+			pitch = 25;
+		else if(pitch > 70)
+			pitch = 70;
 	}
 	
-	private void CalculateAngleAroundPlayer() {
+	private void CalculateAngleAroundPlayer() {		
 		float angleChange = Mouse.getDX() * 0.3f;
 		angleAroundPlayer -= angleChange;
 	}
