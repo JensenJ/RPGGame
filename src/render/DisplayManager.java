@@ -1,6 +1,7 @@
 package render;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.Sys;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -13,6 +14,9 @@ public class DisplayManager {
 	public static final int HEIGHT = 720;
 	public static final int FPS = 120;
 	public static final String TITLE = "Voxel RPG";
+	
+	private static long lastFrameTime;
+	private static float deltaTime;
 	
 	public static void CreateDisplay() {
 		
@@ -27,15 +31,26 @@ public class DisplayManager {
 		}
 		
 		GL11.glViewport(0, 0, WIDTH, HEIGHT);
+		lastFrameTime = GetCurrentTime();
 	}
 	
 	public static void UpdateDisplay() {
 		Display.sync(FPS);
 		Display.update();
+		long currentFrameTime = GetCurrentTime();
+		deltaTime = (currentFrameTime - lastFrameTime) / 1000.0f;
+		lastFrameTime = currentFrameTime;
+	}
+	
+	public static float GetFrameTimeSeconds() {
+		return deltaTime;
 	}
 	
 	public static void CloseDisplay() {
 		Display.destroy();
 	}
 	
+	private static long GetCurrentTime() {
+		return Sys.getTime()*1000/Sys.getTimerResolution();
+	}
 }
