@@ -2,6 +2,7 @@ package game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
@@ -58,10 +59,12 @@ public class MainGameLoop {
 		
 		List<Terrain> terrains = new ArrayList<Terrain>();
 		
+		Random random = new Random();
+		int seed = random.nextInt(1000000000);
 		
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
-				terrains.add(new Terrain(i, -j - 1, loader, texturePack, blendMap));
+				terrains.add(new Terrain(i, -j - 1, seed, loader, texturePack, blendMap, "heightMap"));
 			}
 		}
 		

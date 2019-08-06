@@ -1,5 +1,7 @@
 package terrain;
 
+import org.lwjgl.util.vector.Vector3f;
+
 import models.RawModel;
 import render.Loader;
 import textures.TerrainTexture;
@@ -7,26 +9,33 @@ import textures.TerrainTexturePack;
 
 public class Terrain {
 
-	private static final float SIZE = 16;
-	private static final int VERTEX_COUNT = 16;
+	private static final int SIZE = 64;
 	
-	private float x;
-	private float z;
+	private int seed = 0;
+	private int x;
+	private int z;
 	private RawModel model;
 	private TerrainTexturePack texturePack;
 	private TerrainTexture blendMap;
 	
-	public Terrain(int gridX, int gridZ, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap) {
+	public Terrain(int gridX, int gridZ, int seed, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap, String heightMap) {
 		this.texturePack = texturePack;
 		this.blendMap = blendMap;
 		this.x = gridX * SIZE;
 		this.z = gridZ * SIZE;
-		this.model = generateTerrain(loader);
+		this.seed = seed;
+		this.model = generateTerrain(loader, heightMap);
 		
 	}
 	
-	private RawModel generateTerrain(Loader loader){
+	private RawModel generateTerrain(Loader loader, String heightMap){
+		
+		HeightGenerator generator = new HeightGenerator(this.seed);
+		
+		int VERTEX_COUNT = 16;
+		
 		int count = VERTEX_COUNT * VERTEX_COUNT;
+		//heights = new float[VERTEX_COUNT][VERTEX_COUNT];
 		float[] vertices = new float[count * 3];
 		float[] normals = new float[count * 3];
 		float[] textureCoords = new float[count*2];
@@ -35,11 +44,14 @@ public class Terrain {
 		for(int i=0;i<VERTEX_COUNT;i++){
 			for(int j=0;j<VERTEX_COUNT;j++){
 				vertices[vertexPointer*3] = (float)j/((float)VERTEX_COUNT - 1) * SIZE;
-				vertices[vertexPointer*3+1] = 0;
+				float height = GetHeight(j, i, generator);
+				vertices[vertexPointer*3+1] = height;
+				//heights[j][i] = height;
 				vertices[vertexPointer*3+2] = (float)i/((float)VERTEX_COUNT - 1) * SIZE;
-				normals[vertexPointer*3] = 0;
-				normals[vertexPointer*3+1] = 1;
-				normals[vertexPointer*3+2] = 0;
+				Vector3f normal = CalculateNormal(j, i, generator);
+				normals[vertexPointer*3] = normal.x;
+				normals[vertexPointer*3+1] = normal.y;
+				normals[vertexPointer*3+2] = normal.z;
 				textureCoords[vertexPointer*2] = (float)j/((float)VERTEX_COUNT - 1);
 				textureCoords[vertexPointer*2+1] = (float)i/((float)VERTEX_COUNT - 1);
 				vertexPointer++;
@@ -63,11 +75,26 @@ public class Terrain {
 		return loader.loadToVAO(vertices, textureCoords, normals, indices);
 	}
 
-	public float GetX() {
+	private Vector3f CalculateNormal(int x, int z, HeightGenerator generator) {
+		float heightL = GetHeight(x-1, z, generator);
+		float heightR = GetHeight(x+1, z, generator);
+		float heightD = GetHeight(x, z-1, generator);
+		float heightU = GetHeight(x, z+1, generator);
+		Vector3f normal = new Vector3f(heightL-heightR, 2f, heightD - heightU);
+		normal.normalise();
+		return normal;
+	}
+	
+	private float GetHeight(int x, int z, HeightGenerator generator) {
+		return generator.GenerateHeight(x, z);
+	}
+		
+	
+	public int GetX() {
 		return x;
 	}
 
-	public float GetZ() {
+	public int GetZ() {
 		return z;
 	}
 
