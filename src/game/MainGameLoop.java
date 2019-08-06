@@ -64,7 +64,7 @@ public class MainGameLoop {
 		
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
-				terrains.add(new Terrain(i, -j - 1, seed, loader, texturePack, blendMap, "heightMap"));
+				terrains.add(new Terrain(i, j, seed, loader, texturePack, blendMap));
 			}
 		}
 		

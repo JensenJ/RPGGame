@@ -4,26 +4,34 @@ import java.util.Random;
 
 public class HeightGenerator {
 
-	private static final float AMPLITUDE = 10.0f;
-	private static final float ROUGHNESS = 0.3f;
+	private static final float AMPLITUDE = 1.0f;
+	private static final float FREQUENCY = 0.5f;
+	private static final float REDISTRIBUTION = 2.0f;
 	private static final int OCTAVES = 4;
 	
 	private Random random = new Random();
 	private int seed;
+	private int xOffset = 0;
+	private int zOffset = 0;
 	
-	public HeightGenerator(int seed) {
+	public HeightGenerator(int gridX, int gridZ, int vertexCount, int seed) {
 		this.seed = seed;
-		random.setSeed(seed);
+		xOffset = gridX * (vertexCount - 1);
+		zOffset = gridZ * (vertexCount - 1);
 	}
 	
 	public float GenerateHeight(int x, int z) {
+		
 		float total = 0;
-		float d = (float) Math.pow(2, OCTAVES-1);
 		for(int i = 0; i < OCTAVES; i++) {
-			float freq = (float) (Math.pow(2, i) / d);
-			float amp = (float) Math.pow(ROUGHNESS, i) * AMPLITUDE;
-			total += GetInterpolatedNoise(x * freq, z * freq) * amp;
+			float xSample = (x * (FREQUENCY / 10));
+            float zSample = (z * (FREQUENCY / 10));		
+            
+			total += GetInterpolatedNoise(xSample, zSample) * AMPLITUDE;
+			
 		}
+		total = (float) Math.pow(total, REDISTRIBUTION);
+		//total = Math.round(total);
 		
 		return total;
 

@@ -9,7 +9,8 @@ import textures.TerrainTexturePack;
 
 public class Terrain {
 
-	private static final int SIZE = 64;
+	private static final int SIZE = 16;
+	private static final int VERTEX_COUNT = 16;
 	
 	private int seed = 0;
 	private int x;
@@ -18,21 +19,18 @@ public class Terrain {
 	private TerrainTexturePack texturePack;
 	private TerrainTexture blendMap;
 	
-	public Terrain(int gridX, int gridZ, int seed, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap, String heightMap) {
+	public Terrain(int gridX, int gridZ, int seed, Loader loader, TerrainTexturePack texturePack, TerrainTexture blendMap) {
 		this.texturePack = texturePack;
 		this.blendMap = blendMap;
 		this.x = gridX * SIZE;
 		this.z = gridZ * SIZE;
 		this.seed = seed;
-		this.model = generateTerrain(loader, heightMap);
-		
+		this.model = GenerateTerrain(loader);
 	}
-	
-	private RawModel generateTerrain(Loader loader, String heightMap){
+
+	private RawModel GenerateTerrain(Loader loader){
 		
-		HeightGenerator generator = new HeightGenerator(this.seed);
-		
-		int VERTEX_COUNT = 16;
+		HeightGenerator generator = new HeightGenerator(x / SIZE, z / SIZE, VERTEX_COUNT, seed);
 		
 		int count = VERTEX_COUNT * VERTEX_COUNT;
 		//heights = new float[VERTEX_COUNT][VERTEX_COUNT];
@@ -44,11 +42,11 @@ public class Terrain {
 		for(int i=0;i<VERTEX_COUNT;i++){
 			for(int j=0;j<VERTEX_COUNT;j++){
 				vertices[vertexPointer*3] = (float)j/((float)VERTEX_COUNT - 1) * SIZE;
-				float height = GetHeight(j, i, generator);
+				float height = GetHeight(j + x, i + z, generator);
 				vertices[vertexPointer*3+1] = height;
 				//heights[j][i] = height;
 				vertices[vertexPointer*3+2] = (float)i/((float)VERTEX_COUNT - 1) * SIZE;
-				Vector3f normal = CalculateNormal(j, i, generator);
+				Vector3f normal = CalculateNormal(j + x, i + z, generator);
 				normals[vertexPointer*3] = normal.x;
 				normals[vertexPointer*3+1] = normal.y;
 				normals[vertexPointer*3+2] = normal.z;
