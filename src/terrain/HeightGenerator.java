@@ -11,13 +11,9 @@ public class HeightGenerator {
 	
 	private Random random = new Random();
 	private int seed;
-	private int xOffset = 0;
-	private int zOffset = 0;
 	
 	public HeightGenerator(int gridX, int gridZ, int vertexCount, int seed) {
 		this.seed = seed;
-		xOffset = gridX * (vertexCount - 1);
-		zOffset = gridZ * (vertexCount - 1);
 	}
 	
 	public float GenerateHeight(int x, int z) {
