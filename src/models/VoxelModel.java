@@ -5,6 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class VoxelModel {
 	
+	//Positive X face positions
 	public static Vector3f[] PX_POS = {
 			
 			new Vector3f(0.5f,0.5f,-0.5f),
@@ -16,6 +17,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Negative X face positions
 	public static Vector3f[] NX_POS = {
 			
 			new Vector3f(-0.5f,0.5f,-0.5f),
@@ -27,6 +29,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Positive Y face positions
 	public static Vector3f[] PY_POS = {
 			
 			new Vector3f(-0.5f,0.5f,0.5f),
@@ -38,6 +41,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Negative Y face positions
 	public static Vector3f[] NY_POS = {
 			
 			new Vector3f(-0.5f,-0.5f,0.5f),
@@ -49,6 +53,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Positive Z face positions
 	public static Vector3f[] PZ_POS = {
 			
 			new Vector3f(-0.5f,0.5f,0.5f),
@@ -60,6 +65,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Negative Z face positions
 	public static Vector3f[] NZ_POS = {
 			
 			new Vector3f(-0.5f,0.5f,-0.5f),
@@ -71,6 +77,7 @@ public class VoxelModel {
 			
 	};
 	
+	//UV locations
 	public static Vector2f[] UV = {
 			
 			new Vector2f(0.0f, 0.0f),
@@ -82,6 +89,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Normals
 	public static Vector3f[] NORMALS = {
 			
 			new Vector3f(1.0f, 1.0f, 1.0f),
@@ -93,6 +101,7 @@ public class VoxelModel {
 			
 	};
 	
+	//Vertices data
 	public static float[] vertices = {
 			
 			-0.5f,0.5f,-0.5f,	
@@ -127,11 +136,13 @@ public class VoxelModel {
 			
 	};
 	
+	
+	//Normal data
 	public static float[] normals = {
 			-0.5f,0.5f,-0.5f,	
 			-0.5f,-0.5f,-0.5f,	
 			0.5f,-0.5f,-0.5f,	
-			0.5f,0.5f,-0.5f,		
+			0.5f,0.5f,-0.5f,	
 			
 			-0.5f,0.5f,0.5f,	
 			-0.5f,-0.5f,0.5f,	
@@ -159,6 +170,7 @@ public class VoxelModel {
 			0.5f,-0.5f,0.5f
 	};
 	
+	//Indices data
 	public static int[] indices = {
 			
 			0,1,3,	
@@ -176,6 +188,7 @@ public class VoxelModel {
 			
 	};
 	
+	//UV coord data
 	public static float[] uv = {
 			
 			0, 0,

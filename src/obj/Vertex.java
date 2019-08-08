@@ -5,6 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 public class Vertex {
 	private static final int NO_INDEX = -1;
     
+	//Vertex Data
     private Vector3f position;
     private int textureIndex = NO_INDEX;
     private int normalIndex = NO_INDEX;
@@ -12,12 +13,14 @@ public class Vertex {
     private int index;
     private float length;
      
+    //Constructor
     public Vertex(int index,Vector3f position){
         this.index = index;
         this.position = position;
         this.length = position.length();
     }
      
+    //Getters and setters
     public int GetIndex(){
         return index;
     }

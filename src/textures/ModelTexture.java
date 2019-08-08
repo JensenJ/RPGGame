@@ -4,12 +4,14 @@ public class ModelTexture {
 
 	private int textureID;
 	
+	//Texture variables
 	private float shineDamper = 1;
 	private float reflectivity = 0;
 	
 	private boolean hasTransparency = false;
 	private boolean hasFakeLighting = false;
 	
+	//Getters and setters
 	public boolean GetTransparencyState() {
 		return hasTransparency;
 	}

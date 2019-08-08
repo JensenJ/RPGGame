@@ -10,6 +10,7 @@ import org.lwjgl.opengl.PixelFormat;
 
 public class DisplayManager {
 
+	//Display settings
 	public static final int WIDTH = 1920;
 	public static final int HEIGHT = 1080;
 	public static final int FPS = 120;
@@ -18,10 +19,12 @@ public class DisplayManager {
 	private static long lastFrameTime;
 	private static float deltaTime;
 	
+	//Creates display
 	public static void CreateDisplay() {
 		
 		ContextAttribs attribs = new ContextAttribs(3,2).withForwardCompatible(true).withProfileCore(true);
 		
+		//Display creation
 		try {
 			Display.setDisplayMode(new DisplayMode(WIDTH, HEIGHT));
 			Display.create(new PixelFormat(), attribs);
@@ -34,6 +37,7 @@ public class DisplayManager {
 		lastFrameTime = GetCurrentTime();
 	}
 	
+	//Updates display with constant framerate
 	public static void UpdateDisplay() {
 		Display.sync(FPS);
 		Display.update();
@@ -42,12 +46,15 @@ public class DisplayManager {
 		lastFrameTime = currentFrameTime;
 	}
 	
-	public static float GetFrameTimeSeconds() {
-		return deltaTime;
-	}
-	
+	//Closes display window
 	public static void CloseDisplay() {
 		Display.destroy();
+	}
+	
+	
+	//Getters and setters
+	public static float GetFrameTimeSeconds() {
+		return deltaTime;
 	}
 	
 	private static long GetCurrentTime() {

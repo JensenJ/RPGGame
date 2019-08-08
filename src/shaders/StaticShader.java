@@ -9,9 +9,11 @@ import utilities.Maths;
 
 public class StaticShader extends ShaderProgram {
 
+	//Shader file locations
 	private static final String VERTEX_FILE = "src/shaders/staticVertexShader.txt";
 	private static final String FRAGMENT_FILE = "src/shaders/staticFragmentShader.txt";
 	
+	//Uniform locations
 	private int location_transformationMatrix;
 	private int location_projectionMatrix;
 	private int location_viewMatrix;
@@ -30,11 +32,13 @@ public class StaticShader extends ShaderProgram {
 
 	@Override
 	protected void BindAttributes() {
+		//Bind attributes
 		super.BindAttribute(0, "position");
 		super.BindAttribute(1, "textureCoords");
 		super.BindAttribute(2, "normal");
 	}
 
+	//Get uniform locations from files
 	@Override
 	protected void GetAllUniformLocations() {
 		location_transformationMatrix = super.GetUniformLocation("transformationMatrix");
@@ -51,6 +55,7 @@ public class StaticShader extends ShaderProgram {
 		
 	}
 	
+	//Load uniforms
 	public void LoadSkySettings(Vector3f skyColour, float density, float gradient) {
 		super.LoadVector(location_skyColour, skyColour);
 		super.LoadFloat(location_fogDensity, density);

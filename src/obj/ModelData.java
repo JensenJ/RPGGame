@@ -2,12 +2,14 @@ package obj;
 
 public class ModelData {
 
+	//Model data
 	private float[] vertices;
     private float[] textureCoords;
     private float[] normals;
     private int[] indices;
     private float furthestPoint;
  
+    //Constructor
     public ModelData(float[] vertices, float[] textureCoords, float[] normals, int[] indices,
             float furthestPoint) {
         this.vertices = vertices;
@@ -17,6 +19,7 @@ public class ModelData {
         this.furthestPoint = furthestPoint;
     }
  
+    //Getters and setters
     public float[] GetVertices() {
         return vertices;
     }

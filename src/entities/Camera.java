@@ -6,13 +6,14 @@ import org.lwjgl.util.vector.Vector3f;
 
 public class Camera {
 
+	//Camera Clamping
 	private static final float MAX_ZOOM = 70.0f;
 	private static final float MIN_ZOOM = 10.0f;
 	
 	private static final float MAX_PITCH = 70.0f;
 	private static final float MIN_PITCH = 25.0f;
 	
-	
+	//Positional data
 	private float distanceFromPlayer = 50;
 	private float angleAroundPlayer = 0;
 	
@@ -21,12 +22,15 @@ public class Camera {
 	
 	private Player player;
 	
+	//Constructor
 	public Camera(Player player) {
 		this.player = player;
 	}
 	
+	//Move Camera method
 	public void Move() {
 		
+		//AngleAroundPlayer
 		if(Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
 			CalculateAngleAroundPlayer();
 			if(Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_S) 
@@ -34,6 +38,7 @@ public class Camera {
 				player.IncreaseRotation(0, angleAroundPlayer, 0);
 				angleAroundPlayer = 0;
 			}
+			//Linearly return to back of player
 		}else if(!Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
 			angleAroundPlayer /= 1.2f;
 			if(angleAroundPlayer >= -0.5f && angleAroundPlayer <= 0.5f)
@@ -43,12 +48,14 @@ public class Camera {
 		CalculateZoom();
 		CalculatePitch();
 		
+		//Calculating Camera Position
 		float horizontalDist = CalculateHorizontalDistance();
 		float verticalDist = CalculateVerticalDistance();
 		CalculateCameraPosition(horizontalDist, verticalDist);
 		this.yaw = 180 - (player.GetRotY() + angleAroundPlayer);
 	}
 
+	//Camera position
 	private void CalculateCameraPosition(float horizontalDistance, float verticalDistance) {
 		float theta = player.GetRotY() + angleAroundPlayer;
 		float offsetX = (float) (horizontalDistance * Math.sin(Math.toRadians(theta)));
@@ -58,6 +65,7 @@ public class Camera {
 		position.z = player.GetPosition().z - offsetZ;
 	}
 	
+	//Horizontal distance
 	private float CalculateHorizontalDistance() {
 		float horizontalDistance = (float) (distanceFromPlayer * Math.cos(Math.toRadians(pitch)));
 		if(horizontalDistance < 0)
@@ -65,7 +73,7 @@ public class Camera {
 		return horizontalDistance;
 	}
 	
-	
+	//Vertical distance
 	private float CalculateVerticalDistance() {
 		float verticalDistance = (float) (distanceFromPlayer * Math.sin(Math.toRadians(pitch)));
 		if(verticalDistance < 0)
@@ -73,6 +81,7 @@ public class Camera {
 		return verticalDistance;
 	}
 	
+	//Calculate zoom
 	private void CalculateZoom() {
 		float zoomLevel = Mouse.getDWheel() * 0.025f;
 		distanceFromPlayer -= zoomLevel;
@@ -86,6 +95,7 @@ public class Camera {
 		}
 	}
 	
+	//Calculate pitch
 	private void CalculatePitch() {
 		float pitchChange = Mouse.getDY() * 0.1f;
 		pitch -= pitchChange;
@@ -95,11 +105,13 @@ public class Camera {
 			pitch = MAX_PITCH;
 	}
 	
+	//Calculate angle around player
 	private void CalculateAngleAroundPlayer() {		
 		float angleChange = Mouse.getDX() * 0.3f;
 		angleAroundPlayer -= angleChange;
 	}
 	
+	//Getters and setters
 	public Vector3f GetPosition() {
 		return position;
 	}

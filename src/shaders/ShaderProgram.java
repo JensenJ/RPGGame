@@ -13,40 +13,49 @@ import org.lwjgl.util.vector.Vector3f;
 
 public abstract class ShaderProgram {
 	
+	//IDs
 	private int programID;
 	private int vertexShaderID;
 	private int fragmentShaderID;
 	
 	private static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
+	//Constructor
 	public ShaderProgram(String vertexFile, String fragmentFile) {
+		//Loading shader with file paths
 		vertexShaderID = LoadShader(vertexFile, GL20.GL_VERTEX_SHADER);
 		fragmentShaderID = LoadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
 		programID = GL20.glCreateProgram();
 		
+		//Attaching and linking shaders
 		GL20.glAttachShader(programID, vertexShaderID);
 		GL20.glAttachShader(programID, fragmentShaderID);
 		BindAttributes();
 		GL20.glLinkProgram(programID);
 		GL20.glValidateProgram(programID);
 		
+		//Get uniform locations in all child programs
 		GetAllUniformLocations();
 	}
 	
 	protected abstract void GetAllUniformLocations();
 	
+	//Getting uniform location
 	protected int GetUniformLocation(String uniformName) {
 		return GL20.glGetUniformLocation(programID, uniformName);
 	}
 	
+	//Start program
 	public void Start() {
 		GL20.glUseProgram(programID);
 	}
 	
+	//Stop program
 	public void Stop() {
 		GL20.glUseProgram(0);
 	}
 	
+	//Clean up program
 	public void CleanUp() {
 		Stop();
 		GL20.glDetachShader(programID, vertexShaderID);
@@ -58,9 +67,12 @@ public abstract class ShaderProgram {
 	
 	protected abstract void BindAttributes();
 	
+	//Bind attributes
 	protected void BindAttribute(int attribute, String variableName) {
 		GL20.glBindAttribLocation(programID, attribute, variableName);
 	}
+	
+	//Loading uniforms to shader
 	
 	protected void LoadFloat(int location, float value) {
 		GL20.glUniform1f(location, value);
@@ -86,8 +98,9 @@ public abstract class ShaderProgram {
 	
 	private static int LoadShader(String file, int type) {
 		StringBuilder shaderSource = new StringBuilder();
-		
+		//Loading shader file
 		try {
+			//Reading lines
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			String line;
 			while((line = reader.readLine())!= null) {
@@ -95,10 +108,12 @@ public abstract class ShaderProgram {
 			}
 			reader.close();
 		}catch (IOException e) {
+			//Error catching
 			System.err.println("Could not read file!");
 			e.printStackTrace();
 			System.exit(-1);
 		}
+		//Creating shader
 		int shaderID = GL20.glCreateShader(type);
 		GL20.glShaderSource(shaderID, shaderSource);
 		GL20.glCompileShader(shaderID);

@@ -6,13 +6,14 @@ import models.TexturedModel;
 
 public class Entity {
 
+	//Basic Entity data
 	private TexturedModel model;
 	private Vector3f position;
 	private float rotX, rotY, rotZ;
 	private float scale;
-	
 	private boolean ShouldDrawInArrays = false;
 	
+	//Constructor
 	public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale, boolean arrayDrawing) {
 		this.model = model;
 		this.position = position;
@@ -23,18 +24,21 @@ public class Entity {
 		this.ShouldDrawInArrays = arrayDrawing;
 	}
 	
+	//Position Increase
 	public void IncreasePosition(float x, float y, float z) {
 		this.position.x+=x;
 		this.position.y+=y;
 		this.position.z+=z;
 	}
 	
+	//Rotation Increase
 	public void IncreaseRotation(float x, float y, float z) {
 		this.rotX+=x;
 		this.rotY+=y;
 		this.rotZ+=z;
 	}
 
+	//Getters and Setters
 	public TexturedModel GetModel() {
 		return model;
 	}
