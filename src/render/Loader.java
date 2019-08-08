@@ -24,9 +24,9 @@ public class Loader {
 	private List<Integer> vbos = new ArrayList<Integer>();
 	private List<Integer> textures = new ArrayList<Integer>();
 	
-	public RawModel loadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
+	public RawModel LoadToVAO(float[] positions, float[] textureCoords, float[] normals, int[] indices) {
 		int vaoID = CreateVAO();
-		bindIndicesBuffer(indices);
+		BindIndicesBuffer(indices);
 		StoreDataInAttributeList(0, 3, positions);
 		StoreDataInAttributeList(1, 2, textureCoords);
 		StoreDataInAttributeList(2, 3, normals);
@@ -34,7 +34,7 @@ public class Loader {
 		return new RawModel(vaoID, indices.length);
 	}
 	
-	public RawModel loadTerrainToVAO(float[] positions, float[] textureCoords, float[] normals) {
+	public RawModel LoadTerrainToVAO(float[] positions, float[] textureCoords, float[] normals) {
 		int vaoID = CreateVAO();
 		//bindIndicesBuffer(indices);
 		StoreDataInAttributeList(0, 3, positions);
@@ -44,13 +44,10 @@ public class Loader {
 		return new RawModel(vaoID, positions.length);
 	}
 	
-	public int loadTexture(String fileName) {
+	public int LoadTexture(String fileName) {
 		Texture texture = null;
 		try {
 			texture = TextureLoader.getTexture("PNG", new FileInputStream("res/" + fileName+".png"));
-			GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
-			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST);
-			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -0.4f);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -60,8 +57,11 @@ public class Loader {
 		int textureID = texture.getTextureID();
 		textures.add(textureID);
 		
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);	
+		GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);
+		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL14.GL_TEXTURE_LOD_BIAS, -0.4f);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
+		
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
 		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 		
@@ -80,7 +80,7 @@ public class Loader {
 		}
 	}
 	
-	private void bindIndicesBuffer(int[] indices) {
+	private void BindIndicesBuffer(int[] indices) {
 		int vboID = GL15.glGenBuffers();
 		vbos.add(vboID);
 		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vboID);

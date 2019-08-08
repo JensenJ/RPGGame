@@ -36,13 +36,13 @@ public class MainGameLoop {
 		
 		ModelData modelData = OBJFileLoader.LoadOBJ("TestCube");
 		
-		RawModel playerModel = loader.loadToVAO(
+		RawModel playerModel = loader.LoadToVAO(
 				modelData.GetVertices(),
 				modelData.GetTextureCoords(),
 				modelData.GetNormals(),
 				modelData.GetIndices());
 		
-		TexturedModel texturedModel = new TexturedModel(playerModel, new ModelTexture(loader.loadTexture("dirt")));
+		TexturedModel texturedModel = new TexturedModel(playerModel, new ModelTexture(loader.LoadTexture("dirt")));
 		ModelTexture texture = texturedModel.GetTexture();
 		texture.SetShineDamper(5);
 		texture.SetReflectivity(0.1f);
@@ -97,8 +97,8 @@ public class MainGameLoop {
 		while(!Display.isCloseRequested()) {
 			
 			if(index < terrainChunks.size()) {
-				RawModel chunkModel = loader.loadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
-				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.loadTexture("dirt")));
+				RawModel chunkModel = loader.LoadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
+				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.LoadTexture("dirt")));
 				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
 				chunkTexture.SetTransparencyState(true);	
 				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1, true);
