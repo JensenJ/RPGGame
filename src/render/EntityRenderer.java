@@ -35,8 +35,12 @@ public class EntityRenderer {
 			List<Entity> batch = entities.get(model);
 			for(Entity entity:batch) {
 				PrepareInstance(entity);
-				//GL11.glDrawElements(GL11.GL_TRIANGLES, model.GetRawModel().GetVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-				GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, model.GetRawModel().GetVertexCount());
+				
+				if(entity.GetShouldDrawInArrays()) {	
+					GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, model.GetRawModel().GetVertexCount()/3);
+				}else {
+					GL11.glDrawElements(GL11.GL_TRIANGLES, model.GetRawModel().GetVertexCount(), GL11.GL_UNSIGNED_INT, 0);	
+				}
 			}
 			UnbindTexturedModel();
 		}
@@ -50,10 +54,9 @@ public class EntityRenderer {
 		GL20.glEnableVertexAttribArray(2);
 		
 		ModelTexture texture = model.GetTexture();
-		MasterRenderer.DisableCulling();
-		//if(texture.GetTransparencyState() == true) {
-		//	MasterRenderer.DisableCulling();
-		//}
+		if(texture.GetTransparencyState() == true) {
+			MasterRenderer.DisableCulling();
+		}
 		shader.LoadFakeLighting(texture.GetFakeLightingState());
 		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);

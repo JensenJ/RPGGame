@@ -27,7 +27,7 @@ public class MainGameLoop {
 
 	private static Vector3f playerPos = new Vector3f(0, 0, 0);
 	private static final int CHUNK_SIZE = 16;
-	private static final int RENDER_DISTANCE = 5 * CHUNK_SIZE;
+	private static final int RENDER_DISTANCE = 16 * CHUNK_SIZE;
 	private static boolean isRunning = true;
 	
 	public static void main(String[] args) {
@@ -99,7 +99,9 @@ public class MainGameLoop {
 			if(index < terrainChunks.size()) {
 				RawModel chunkModel = loader.loadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
 				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.loadTexture("dirt")));
-				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1);
+				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
+				chunkTexture.SetTransparencyState(true);	
+				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1, true);
 				terrainEntities.add(chunkEntity);
 				
 				terrainChunks.get(index).positions = null;

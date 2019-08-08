@@ -11,13 +11,16 @@ public class Entity {
 	private float rotX, rotY, rotZ;
 	private float scale;
 	
-	public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
+	private boolean ShouldDrawInArrays = false;
+	
+	public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale, boolean arrayDrawing) {
 		this.model = model;
 		this.position = position;
 		this.rotX = rotX;
 		this.rotY = rotY;
 		this.rotZ = rotZ;
 		this.scale = scale;
+		this.ShouldDrawInArrays = arrayDrawing;
 	}
 	
 	public void IncreasePosition(float x, float y, float z) {
@@ -79,5 +82,14 @@ public class Entity {
 	public void SetScale(float scale) {
 		this.scale = scale;
 	}
+
+	public boolean GetShouldDrawInArrays() {
+		return ShouldDrawInArrays;
+	}
+
+	public void SetShouldDrawInArrays(boolean shouldDrawInArrays) {
+		ShouldDrawInArrays = shouldDrawInArrays;
+	}
+	
 	
 }

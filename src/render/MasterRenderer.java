@@ -15,8 +15,6 @@ import entities.Entity;
 import entities.Light;
 import models.TexturedModel;
 import shaders.StaticShader;
-import shaders.TerrainShader;
-import terrain.ChunkMesh;
 
 public class MasterRenderer {
 
@@ -31,19 +29,15 @@ public class MasterRenderer {
 	private Matrix4f projectionMatrix;
 	
 	private StaticShader shader = new StaticShader();
-	private TerrainShader terrainShader = new TerrainShader();
 	
 	private EntityRenderer renderer;
-	private TerrainRenderer terrainRenderer;
 	
 	private Map<TexturedModel, List<Entity>> entities = new HashMap<TexturedModel, List<Entity>>();
-	private List<ChunkMesh> terrains = new ArrayList<ChunkMesh>();
 	
 	public MasterRenderer() {
 		EnableCulling();
 		CreateProjectionMatrix();
 		renderer = new EntityRenderer(shader, projectionMatrix);
-		terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
 	}
 	
 	public static void EnableCulling() {
@@ -66,21 +60,10 @@ public class MasterRenderer {
 		renderer.Render(entities);
 		shader.Stop();
 		
-		//Terrains
-		terrainShader.Start();
-		terrainShader.LoadSkySettings(SKY_COLOUR, FOG_DENSITY, FOG_GRADIENT);
-		terrainShader.LoadLight(sun);
-		terrainShader.LoadViewMatrix(camera);
-		terrainRenderer.Render(terrains);
-		terrainShader.Stop();
 		
-		terrains.clear();
 		entities.clear();
 	}
 	
-	public void ProcessTerrain(ChunkMesh terrain) {
-		terrains.add(terrain);
-	}
 	
 	public void ProcessEntity(Entity entity) {
 		TexturedModel entityModel = entity.GetModel();
@@ -119,6 +102,5 @@ public class MasterRenderer {
 	
 	public void CleanUp() {
 		shader.CleanUp();
-		terrainShader.CleanUp();
 	}
 }
