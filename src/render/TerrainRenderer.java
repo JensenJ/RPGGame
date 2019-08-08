@@ -76,7 +76,7 @@ public class TerrainRenderer {
 	
 	private void LoadModelMatrix(ChunkMesh terrain) {
 		Matrix4f transformationMatrix = Maths.CreateTransformationMatrix(
-				new Vector3f(terrain.chunk.origin.x, terrain.chunk.origin.z, terrain.chunk.origin.z), 0, 0, 0, 1);
+				new Vector3f(terrain.chunk.origin.x, terrain.chunk.origin.y, terrain.chunk.origin.z), 0, 0, 0, 1);
 		shader.LoadTransformationMatrix(transformationMatrix);
 	}
 }

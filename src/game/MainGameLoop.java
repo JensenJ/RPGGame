@@ -1,6 +1,7 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
@@ -11,12 +12,12 @@ import entities.Light;
 import entities.Player;
 import models.RawModel;
 import models.TexturedModel;
-import models.VoxelModel;
 import render.DisplayManager;
 import render.Loader;
 import render.MasterRenderer;
 import terrain.Chunk;
 import terrain.ChunkMesh;
+import terrain.HeightGenerator;
 import terrain.Voxel;
 import obj.ModelData;
 import obj.OBJFileLoader;
@@ -24,9 +25,10 @@ import textures.ModelTexture;
 
 public class MainGameLoop {
 
-	static Vector3f playerPos = new Vector3f(0, 0, 0);
-	static final int RENDER_DISTANCE = 8 * 16;
-	static boolean isRunning = true;
+	private static Vector3f playerPos = new Vector3f(0, 0, 0);
+	private static final int CHUNK_SIZE = 16;
+	private static final int RENDER_DISTANCE = 5 * CHUNK_SIZE;
+	private static boolean isRunning = true;
 	
 	public static void main(String[] args) {
 		DisplayManager.CreateDisplay();
@@ -55,63 +57,83 @@ public class MainGameLoop {
 		
 		MasterRenderer renderer = new MasterRenderer();
 		
-		//Terrain
+		List<ChunkMesh> terrainChunks = Collections.synchronizedList(new ArrayList<ChunkMesh>());
+		List<Vector3f> usedPositions = Collections.synchronizedList(new ArrayList<Vector3f>());
 		
-		RawModel voxel = loader.loadToVAO(
-				VoxelModel.vertices, 
-				VoxelModel.uv, 
-				VoxelModel.normals, 
-				VoxelModel.indices);
+		HeightGenerator chunkHeightGenerator = new HeightGenerator();
 		
-		TexturedModel texturedChunkModel = new TexturedModel(voxel, new ModelTexture(loader.loadTexture("dirt")));
-		ModelTexture chunkTexture = texturedChunkModel.GetTexture();
-		
-		List<Voxel> voxels = new ArrayList<Voxel>();
-		
-		for(int x = 0; x < 16; x++) {
-			for(int y = 0; y < 16; y++) {
-				for(int z = 0; z < 16; z++) {
-					voxels.add(new Voxel(x, y, z, Voxel.VOXELTYPE.DIRT));
+		new Thread(new Runnable() {
+			
+			public void run() {
+				while(isRunning) {
+					for(int x = (int) (playerPos.x - RENDER_DISTANCE) / CHUNK_SIZE; x < (playerPos.x + RENDER_DISTANCE) / CHUNK_SIZE; x++) {
+						for(int z = (int) (playerPos.z - RENDER_DISTANCE) / CHUNK_SIZE; z < (playerPos.z + RENDER_DISTANCE) / CHUNK_SIZE; z++) {
+							if(!usedPositions.contains(new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE))) {
+								
+								List<Voxel> voxels = new ArrayList<Voxel>();
+								
+								for(int i = 0; i < CHUNK_SIZE; i++) {
+									for(int j = 0; j < CHUNK_SIZE; j++) {
+										voxels.add(new Voxel(i, (int)chunkHeightGenerator.generateHeight(i + (x * CHUNK_SIZE), j + (z * CHUNK_SIZE)), j, Voxel.VOXELTYPE.DIRT));
+									}
+								}
+								
+								Chunk chunk = new Chunk(voxels, new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE));
+								terrainChunks.add(new ChunkMesh(chunk));
+								
+								usedPositions.add(chunk.origin);
+								voxels.clear();
+							}
+						}
+					}
 				}
 			}
-		}
+		}).start();
 		
-		Chunk chunk = new Chunk(voxels, new Vector3f(0, 0, 0));
-		ChunkMesh mesh = new ChunkMesh(chunk);
+		List<Entity> terrainEntities = new ArrayList<Entity>();
 		
 		// MAIN LOOP
+		int index = 0;
 		while(!Display.isCloseRequested()) {
+			
+			if(index < terrainChunks.size()) {
+				RawModel chunkModel = loader.loadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
+				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.loadTexture("dirt")));
+				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1);
+				terrainEntities.add(chunkEntity);
+				
+				terrainChunks.get(index).positions = null;
+				terrainChunks.get(index).normals = null;
+				terrainChunks.get(index).uvs = null;
+				
+				index++;
+			}
 			
 			playerPos = player.GetPosition();
 			
 			camera.Move();
 			player.Move();
 			renderer.ProcessEntity(player);
-			renderer.ProcessTerrain(mesh);
 			
-//			for(int i = 0; i < terrainChunks.size(); i++) {
-//				
-//				Vector3f origin = terrainChunks.get(i).GetOrigin();
-//				
-//				int distX = (int) (playerPos.x - origin.x);
-//				int distZ = (int) (playerPos.z - origin.z);
-//				
-//				if(distX < 0) {
-//					distX = -distX;
-//				}
-//				
-//				if(distZ < 0) {
-//					distZ = -distZ;
-//				}
-//				
-//				if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-//					for(int j = 0; j < terrainChunks.get(i).GetVoxels().size(); j++) {
-//						renderer.ProcessEntity(terrainChunks.get(i).GetVoxels().get(j));
-//					}
-//				}
-//				
-//				
-//			}
+			for(int i = 0; i < terrainEntities.size(); i++) {
+				
+				Vector3f origin = terrainEntities.get(i).GetPosition();
+				
+				int distX = (int) (playerPos.x - origin.x);
+				int distZ = (int) (playerPos.z - origin.z);
+				
+				if(distX < 0) {
+					distX = -distX;
+				}
+				
+				if(distZ < 0) {
+					distZ = -distZ;
+				}
+				
+				if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
+					renderer.ProcessEntity(terrainEntities.get(i));
+				}
+			}
 			
 			
 			renderer.Render(light, camera);
@@ -120,6 +142,8 @@ public class MainGameLoop {
 		}
 		
 		isRunning = false;
+		terrainChunks.clear();
+		usedPositions.clear();
 		renderer.CleanUp();
 		loader.CleanUp();
 		DisplayManager.CloseDisplay();

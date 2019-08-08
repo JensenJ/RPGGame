@@ -84,12 +84,12 @@ public class VoxelModel {
 	
 	public static Vector3f[] NORMALS = {
 			
-			new Vector3f(0.0f, 0.0f, 0.0f),
-			new Vector3f(0.0f, 0.0f, 0.0f),
-			new Vector3f(0.0f, 0.0f, 0.0f),
-			new Vector3f(0.0f, 0.0f, 0.0f),
-			new Vector3f(0.0f, 0.0f, 0.0f),
-			new Vector3f(0.0f, 0.0f, 0.0f)
+			new Vector3f(1.0f, 1.0f, 1.0f),
+			new Vector3f(1.0f, 1.0f, 1.0f),
+			new Vector3f(1.0f, 1.0f, 1.0f),
+			new Vector3f(1.0f, 1.0f, 1.0f),
+			new Vector3f(1.0f, 1.0f, 1.0f),
+			new Vector3f(1.0f, 1.0f, 1.0f)
 			
 	};
 	
