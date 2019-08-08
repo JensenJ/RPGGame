@@ -36,6 +36,7 @@ public class EntityRenderer {
 			for(Entity entity:batch) {
 				PrepareInstance(entity);
 				GL11.glDrawElements(GL11.GL_TRIANGLES, model.GetRawModel().GetVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+				
 			}
 			UnbindTexturedModel();
 		}

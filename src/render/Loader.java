@@ -34,6 +34,16 @@ public class Loader {
 		return new RawModel(vaoID, indices.length);
 	}
 	
+	public RawModel loadTerrainToVAO(float[] positions, float[] textureCoords, float[] normals) {
+		int vaoID = CreateVAO();
+		//bindIndicesBuffer(indices);
+		StoreDataInAttributeList(0, 3, positions);
+		StoreDataInAttributeList(1, 2, textureCoords);
+		StoreDataInAttributeList(2, 3, normals);
+		UnbindVAO();
+		return new RawModel(vaoID, positions.length);
+	}
+	
 	public int loadTexture(String fileName) {
 		Texture texture = null;
 		try {

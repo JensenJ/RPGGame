@@ -16,7 +16,7 @@ import entities.Light;
 import models.TexturedModel;
 import shaders.StaticShader;
 import shaders.TerrainShader;
-import terrain.Terrain;
+import terrain.ChunkMesh;
 
 public class MasterRenderer {
 
@@ -37,7 +37,7 @@ public class MasterRenderer {
 	private TerrainRenderer terrainRenderer;
 	
 	private Map<TexturedModel, List<Entity>> entities = new HashMap<TexturedModel, List<Entity>>();
-	private List<Terrain> terrains = new ArrayList<Terrain>();
+	private List<ChunkMesh> terrains = new ArrayList<ChunkMesh>();
 	
 	public MasterRenderer() {
 		EnableCulling();
@@ -78,7 +78,7 @@ public class MasterRenderer {
 		entities.clear();
 	}
 	
-	public void ProcessTerrain(Terrain terrain) {
+	public void ProcessTerrain(ChunkMesh terrain) {
 		terrains.add(terrain);
 	}
 	

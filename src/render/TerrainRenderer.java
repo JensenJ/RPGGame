@@ -10,9 +10,10 @@ import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
 import models.RawModel;
+import models.TexturedModel;
 import shaders.TerrainShader;
-import terrain.Terrain;
-import textures.TerrainTexturePack;
+import terrain.ChunkMesh;
+import textures.ModelTexture;
 import utilities.Maths;
 
 public class TerrainRenderer {
@@ -23,48 +24,47 @@ public class TerrainRenderer {
 		this.shader = shader;
 		shader.Start();
 		shader.LoadProjectionMatrix(projectionMatrix);
-		shader.ConnectTextureUnits();
 		shader.Stop();
 	}
 	
-	public void Render(List<Terrain> terrains) {
-		for(Terrain terrain: terrains) {
+	public void Render(List<ChunkMesh> terrains) {
+		for(ChunkMesh terrain: terrains) {
 			PrepareTerrain(terrain);
 			LoadModelMatrix(terrain);
-			GL11.glDrawElements(GL11.GL_TRIANGLES, terrain.GetModel().GetVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+			GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, terrain.positions.length);
 			UnbindTexturedModel();
 		}
 	}
 	
-	private void PrepareTerrain(Terrain terrain) {
-		RawModel rawModel = terrain.GetModel();
+	private void PrepareTerrain(ChunkMesh terrain) {
+		Loader loader = new Loader();
+		RawModel rawModel = loader.loadTerrainToVAO(terrain.positions, terrain.uvs, terrain.normals);
 		GL30.glBindVertexArray(rawModel.GetVaoID());
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
 		
-		BindTextures(terrain);
+		BindTextures(terrain, new TexturedModel(rawModel, new ModelTexture(loader.loadTexture("dirt"))));
 		shader.LoadShine(1, 0);
 		
 	}
 	
-	private void BindTextures(Terrain terrain) {
-		TerrainTexturePack texturePack = terrain.GetTexturePack();
+	private void BindTextures(ChunkMesh terrain, TexturedModel model) {
+		RawModel rawModel = model.GetRawModel();
+		GL30.glBindVertexArray(rawModel.GetVaoID());
+		GL20.glEnableVertexAttribArray(0);
+		GL20.glEnableVertexAttribArray(1);
+		GL20.glEnableVertexAttribArray(2);
 		
+		ModelTexture texture = model.GetTexture();
+		
+		MasterRenderer.DisableCulling();
+		//if(texture.GetTransparencyState() == true) {
+		//}
+		//shader.LoadFakeLighting(texture.GetFakeLightingState());
+		shader.LoadShine(texture.GetShineDamper(), texture.GetReflectivity());
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.GetBackgroundTexture().GetTextureID());
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE1);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.GetRTexture().GetTextureID());
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE2);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.GetGTexture().GetTextureID());
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE3);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texturePack.GetBTexture().GetTextureID());
-		
-		GL13.glActiveTexture(GL13.GL_TEXTURE4);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, terrain.GetBlendMap().GetTextureID());
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.GetTexture().GetID());
 	}
 	
 	private void UnbindTexturedModel() {
@@ -74,9 +74,9 @@ public class TerrainRenderer {
 		GL30.glBindVertexArray(0);
 	}
 	
-	private void LoadModelMatrix(Terrain terrain) {
+	private void LoadModelMatrix(ChunkMesh terrain) {
 		Matrix4f transformationMatrix = Maths.CreateTransformationMatrix(
-				new Vector3f(terrain.GetX(), 0, terrain.GetZ()), 0, 0, 0, 1);
+				new Vector3f(terrain.chunk.origin.x, terrain.chunk.origin.z, terrain.chunk.origin.z), 0, 0, 0, 1);
 		shader.LoadTransformationMatrix(transformationMatrix);
 	}
 }
