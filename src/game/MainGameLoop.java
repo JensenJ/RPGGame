@@ -3,6 +3,9 @@ package game;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -32,12 +35,31 @@ public class MainGameLoop {
 	
 	//back end variables
 	private static boolean isRunning = true;
+	private static List<ChunkMesh> terrainChunks;
+	private static List<Vector3f> usedPositions;
 	
-	//Main method
-	public static void main(String[] args) {
+	//References
+	private static Loader loader;
+	private static Light sun;
+	private static Player player;
+	private static Camera camera;
+	private static MasterRenderer renderer;
+	
+	public static void Initialise() {
+		
 		//Creates window and loader
 		DisplayManager.CreateDisplay();
-		Loader loader = new Loader();
+		loader = new Loader();
+		
+		//Create mouse object
+		try {
+			Mouse.create();
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+		}
+		
+		//Locks mouse to window
+		Mouse.setGrabbed(true);
 		
 		//Loads test cube model data
 		ModelData modelData = OBJFileLoader.LoadOBJ("TestCube");
@@ -56,55 +78,21 @@ public class MainGameLoop {
 		texture.SetReflectivity(0.1f);
 		
 		//Initialises sun
-		Light sun = new Light(new Vector3f(3000, 2000, 2000), new Vector3f(1, 1, 1));
-	
+		sun = new Light(new Vector3f(3000, 2000, 2000), new Vector3f(1, 1, 1));
+		
 		//Player and Camera
-		Player player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
-		Camera camera = new Camera(player);
+		player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
+		camera = new Camera(player);
 		
 		//Renderer
-		MasterRenderer renderer = new MasterRenderer();
+		renderer = new MasterRenderer();
+	}
+	
+	//Main method
+	public static void main(String[] args) {
 		
-		//Terrain Generation, synchronised lists as multiple threads access data
-		List<ChunkMesh> terrainChunks = Collections.synchronizedList(new ArrayList<ChunkMesh>());
-		List<Vector3f> usedPositions = Collections.synchronizedList(new ArrayList<Vector3f>());
-		
-		HeightGenerator chunkHeightGenerator = new HeightGenerator();
-		
-		//Multi-threaded method for generating terrain and good performance
-		new Thread(new Runnable() {
-			
-			public void run() {
-				while(isRunning) {
-					//Generate terrain within RENDER_DISTANCE
-					for(int x = (int) (playerPos.x - RENDER_DISTANCE) / CHUNK_SIZE; x < (playerPos.x + RENDER_DISTANCE) / CHUNK_SIZE; x++) {
-						for(int z = (int) (playerPos.z - RENDER_DISTANCE) / CHUNK_SIZE; z < (playerPos.z + RENDER_DISTANCE) / CHUNK_SIZE; z++) {
-							//Checks this chunk is already not being drawn
-							if(!usedPositions.contains(new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE))) {
-								
-								//Voxel list
-								List<Voxel> voxels = new ArrayList<Voxel>();
-								
-								//Creates voxels within area of CHUNK_SIZE and sets correct height and voxel type.
-								for(int i = 0; i < CHUNK_SIZE; i++) {
-									for(int j = 0; j < CHUNK_SIZE; j++) {
-										voxels.add(new Voxel(i, (int)chunkHeightGenerator.GenerateHeight(i + (x * CHUNK_SIZE), j + (z * CHUNK_SIZE)), j, Voxel.VOXELTYPE.DIRT));
-									}
-								}
-								
-								//Creates new chunk from voxel data and adds it to terrainChunks list, also to usedPositions for performance management
-								Chunk chunk = new Chunk(voxels, new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE));
-								terrainChunks.add(new ChunkMesh(chunk));
-								usedPositions.add(chunk.origin);
-								
-								//Clears voxel list for better RAM usage
-								voxels.clear();
-							}
-						}
-					}
-				}
-			}
-		}).start();
+		Initialise();
+		ChunkLoading();
 		
 		//Chunk entities
 		List<Entity> terrainEntities = new ArrayList<Entity>();
@@ -119,11 +107,14 @@ public class MainGameLoop {
 				RawModel chunkModel = loader.LoadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
 				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.LoadTexture("dirt")));
 				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
+				
 				//Prevents terrain rendering strangely
 				chunkTexture.SetTransparencyState(true);	
+				
+				
 				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1, true);
 				terrainEntities.add(chunkEntity);
-				
+
 				//clearing arrays (important for performance reasons)
 				terrainChunks.get(index).positions = null;
 				terrainChunks.get(index).normals = null;
@@ -132,6 +123,9 @@ public class MainGameLoop {
 				index++;
 			}
 			
+			//COLLISION SYSTEM
+			//Work out what chunk the player is in
+			//Get heights[x][z] of chunk then update in player.setTerrainHeight()
 			
 			//Player and Camera functions
 			playerPos = player.GetPosition();
@@ -160,7 +154,6 @@ public class MainGameLoop {
 				}
 			}
 			
-			
 			//Main render method
 			renderer.Render(sun, camera);
 			
@@ -169,11 +162,58 @@ public class MainGameLoop {
 		}
 		
 		//Close game and clear arrays
+		Mouse.destroy();
 		isRunning = false;
 		terrainChunks.clear();
 		usedPositions.clear();
 		renderer.CleanUp();
 		loader.CleanUp();
 		DisplayManager.CloseDisplay();
+	}
+	
+	public static void ChunkLoading() {
+		//Terrain Generation, synchronised lists as multiple threads access data
+		terrainChunks = Collections.synchronizedList(new ArrayList<ChunkMesh>());
+		usedPositions = Collections.synchronizedList(new ArrayList<Vector3f>());
+		
+		HeightGenerator chunkHeightGenerator = new HeightGenerator();
+		
+		//Multi-threaded method for generating terrain and good performance
+		new Thread(new Runnable() {
+			
+			public void run() {
+				while(isRunning) {
+					//Generate terrain within RENDER_DISTANCE
+					for(int x = (int) (playerPos.x - RENDER_DISTANCE) / CHUNK_SIZE; x < (playerPos.x + RENDER_DISTANCE) / CHUNK_SIZE; x++) {
+						for(int z = (int) (playerPos.z - RENDER_DISTANCE) / CHUNK_SIZE; z < (playerPos.z + RENDER_DISTANCE) / CHUNK_SIZE; z++) {
+							//Checks this chunk is already not being drawn
+							if(!usedPositions.contains(new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE))) {
+								
+								//Voxel list
+								List<Voxel> voxels = new ArrayList<Voxel>();
+								
+								float[][] heights = new float[CHUNK_SIZE][CHUNK_SIZE];
+								
+								//Creates voxels within area of CHUNK_SIZE and sets correct height and voxel type.
+								for(int i = 0; i < CHUNK_SIZE; i++) {
+									for(int j = 0; j < CHUNK_SIZE; j++) {
+										heights[j][i] = (int)chunkHeightGenerator.GenerateHeight(i + (x * CHUNK_SIZE), j + (z * CHUNK_SIZE));
+										voxels.add(new Voxel(i, (int)heights[j][i], j, Voxel.VOXELTYPE.DIRT));
+									}
+								}
+								
+								//Creates new chunk from voxel data and adds it to terrainChunks list, also to usedPositions for performance management
+								Chunk chunk = new Chunk(voxels, new Vector3f(x * CHUNK_SIZE, 0 * CHUNK_SIZE, z * CHUNK_SIZE), heights);
+								terrainChunks.add(new ChunkMesh(chunk));
+								usedPositions.add(chunk.origin);
+								
+								//Clears voxel list for better RAM usage
+								voxels.clear();
+							}
+						}
+					}
+				}
+			}
+		}).start();
 	}
 }

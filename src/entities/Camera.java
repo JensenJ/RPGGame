@@ -32,6 +32,9 @@ public class Camera {
 		
 		//AngleAroundPlayer
 		if(Keyboard.isKeyDown(Keyboard.KEY_LMENU)){
+			if(Mouse.isGrabbed() == true) {
+				Mouse.setGrabbed(false);
+			}
 			CalculateAngleAroundPlayer();
 			if(Keyboard.isKeyDown(Keyboard.KEY_W) || Keyboard.isKeyDown(Keyboard.KEY_S) 
 					|| Keyboard.isKeyDown(Keyboard.KEY_A) || Keyboard.isKeyDown(Keyboard.KEY_D)){
@@ -43,6 +46,9 @@ public class Camera {
 			angleAroundPlayer /= 1.2f;
 			if(angleAroundPlayer >= -0.5f && angleAroundPlayer <= 0.5f)
 				angleAroundPlayer = 0;
+			if(Mouse.isGrabbed() == false) {				
+				Mouse.setGrabbed(true);
+			}
 		}
 		
 		CalculateZoom();
