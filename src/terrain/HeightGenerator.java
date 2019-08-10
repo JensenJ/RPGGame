@@ -5,7 +5,7 @@ import java.util.Random;
 public class HeightGenerator {
 
 	//Generator settings
-	public static float AMPLITUDE = 50f;
+	public static float AMPLITUDE = 80f;
     public static int OCTAVES = 7;
     public static float ROUGHNESS = 0.3f;
     public static float FREQUENCY = 0.5f;
@@ -44,7 +44,7 @@ public class HeightGenerator {
         }
         
         //Return rounded result
-        return (float) (int) total;
+        return (float) (int)total;
         
     }
      

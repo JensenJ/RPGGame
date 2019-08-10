@@ -99,29 +99,8 @@ public class MainGameLoop {
 		
 		// MAIN LOOP
 		//index for chunks
-		int index = 0;
+		int indexEntity = 0;
 		while(!Display.isCloseRequested()) {
-			
-			//Creating Entity data from terrain chunk data
-			if(index < terrainChunks.size()) {
-				RawModel chunkModel = loader.LoadTerrainToVAO(terrainChunks.get(index).positions, terrainChunks.get(index).uvs, terrainChunks.get(index).normals);
-				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.LoadTexture("dirt")));
-				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
-				
-				//Prevents terrain rendering strangely
-				chunkTexture.SetTransparencyState(true);	
-				
-				
-				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(index).chunk.origin, 0, 0, 0, 1, true);
-				terrainEntities.add(chunkEntity);
-
-				//clearing arrays (important for performance reasons)
-				terrainChunks.get(index).positions = null;
-				terrainChunks.get(index).normals = null;
-				terrainChunks.get(index).uvs = null;
-				
-				index++;
-			}
 			
 			//COLLISION SYSTEM
 			//Work out what chunk the player is in
@@ -129,9 +108,83 @@ public class MainGameLoop {
 			
 			//Player and Camera functions
 			playerPos = player.GetPosition();
+			
+			
+			Chunk currentChunk;
+			
+			//For each chunk
+			for(int i = 0; i < terrainChunks.size(); i++) {
+				currentChunk = terrainChunks.get(i).chunk;
+				
+				//Get chunk origin
+				Vector3f origin = currentChunk.origin;
+				
+		    	//If player is standing in this chunk
+				if((playerPos.x >= origin.x && playerPos.x <= origin.x + CHUNK_SIZE) && (playerPos.z >= origin.z && playerPos.z <= origin.z + CHUNK_SIZE)) {
+					
+					//Calculate player position
+					Vector3f playerChunkPos = new Vector3f(playerPos.x % CHUNK_SIZE, 0, playerPos.x % CHUNK_SIZE);
+					
+					int x = (int) playerChunkPos.x;
+					int z = (int) playerChunkPos.z;
+					
+					//Prevents negative position
+			    	x = x < 0 ? -x : x;
+			    	z = z < 0 ? -z : z;
+					
+			    	System.out.println("X: " + x + " Z:" + z);
+					System.out.println(origin);
+					
+					//Negative chunks
+					if(origin.x < 0 && origin.z < 0) {
+						x = 15-x;
+						z = 15-z;
+					}else if(origin.x < 0) {
+						z = 15-z;
+					}else if(origin.z < 0) {
+						x = 15-x;
+					}
+					
+					player.SetTerrainHeight(currentChunk.heights[x][z] + 1);
+					System.out.println("New Height: " + currentChunk.heights[x][z] + 1);
+					
+					break;
+				}
+			}
+			
+			
 			camera.Move();
 			player.Move();
 			renderer.ProcessEntity(player);
+			
+			//Creating Entity data from terrain chunk data
+			if(indexEntity < terrainChunks.size()) {
+				RawModel chunkModel = loader.LoadTerrainToVAO(
+						terrainChunks.get(indexEntity).positions, 
+						terrainChunks.get(indexEntity).uvs, 
+						terrainChunks.get(indexEntity).normals);
+				
+				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.LoadTexture("dirt")));
+				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
+				
+				//Prevents terrain rendering strangely
+				chunkTexture.SetTransparencyState(true);
+				
+				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(indexEntity).chunk.origin, 0, 0, 0, 1, true);
+				terrainEntities.add(chunkEntity);
+
+				//clearing arrays (important for performance reasons)
+				terrainChunks.get(indexEntity).positions = null;
+				terrainChunks.get(indexEntity).normals = null;
+				terrainChunks.get(indexEntity).uvs = null;
+				
+				indexEntity++;
+			}
+			
+			
+			
+			
+
 			
 			//Rendering terrainEntities if within range
 			for(int i = 0; i < terrainEntities.size(); i++) {
@@ -197,8 +250,8 @@ public class MainGameLoop {
 								//Creates voxels within area of CHUNK_SIZE and sets correct height and voxel type.
 								for(int i = 0; i < CHUNK_SIZE; i++) {
 									for(int j = 0; j < CHUNK_SIZE; j++) {
-										heights[j][i] = (int)chunkHeightGenerator.GenerateHeight(i + (x * CHUNK_SIZE), j + (z * CHUNK_SIZE));
-										voxels.add(new Voxel(i, (int)heights[j][i], j, Voxel.VOXELTYPE.DIRT));
+										heights[j][i] = chunkHeightGenerator.GenerateHeight(i + (x * CHUNK_SIZE), j + (z * CHUNK_SIZE));
+										voxels.add(new Voxel(i, (int) Math.floor(heights[j][i]), j, Voxel.VOXELTYPE.DIRT));
 									}
 								}
 								
