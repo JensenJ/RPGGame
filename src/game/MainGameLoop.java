@@ -39,6 +39,9 @@ public class MainGameLoop {
 	private static List<ChunkMesh> terrainChunks;
 	private static List<Vector3f> usedPositions;
 	
+	private static List<Entity> terrainEntities;
+	private static List<Entity> entities;
+	
 	//References
 	private static Loader loader;
 	private static Light sun;
@@ -103,8 +106,8 @@ public class MainGameLoop {
 		ChunkLoading();
 		
 		//Chunk entities
-		List<Entity> terrainEntities = new ArrayList<Entity>();
-		List<Entity> entities = new ArrayList<Entity>();
+		terrainEntities = new ArrayList<Entity>();
+		entities = new ArrayList<Entity>();
 		
 		entities.add(player);
 		entities.add(testEntity);
@@ -112,88 +115,23 @@ public class MainGameLoop {
 		
 		// MAIN LOOP
 		//index for chunks
-		int indexEntity = 0;
+		int chunkIndex = 0;
 		while(!Display.isCloseRequested()) {
 			
-			//COLLISION SYSTEM
-			//Work out what chunk the player is in
-			//Get heights[x][z] of chunk then update in player.setTerrainHeight()
 			
-			//Player and Camera functions
-			playerPos = player.GetPosition();
-			
-			
-			Chunk currentChunk;
-			
-			//For each chunk
-			for(int i = 0; i < terrainChunks.size(); i++) {
-				currentChunk = terrainChunks.get(i).chunk;
-				
-				//Get chunk origin
-				Vector3f origin = currentChunk.origin;
-				
-		    	//If player is standing in this chunk
-				if((playerPos.x >= origin.x && playerPos.x <= origin.x + CHUNK_SIZE) && (playerPos.z >= origin.z && playerPos.z <= origin.z + CHUNK_SIZE)) {
-					
-					//Calculate player position
-					Vector3f playerChunkPos = new Vector3f(playerPos.x % CHUNK_SIZE, 0, playerPos.x % CHUNK_SIZE);
-					
-					int x = (int) playerChunkPos.x;
-					int z = (int) playerChunkPos.z;
-					
-					//Prevents negative position
-			    	x = x < 0 ? -x : x;
-			    	z = z < 0 ? -z : z;
-					
-			    	//System.out.println("X: " + x + " Z:" + z);
-					//System.out.println(origin);
-					
-					//Negative chunks
-					if(origin.x < 0 && origin.z < 0) {
-						x = 15-x;
-						z = 15-z;
-					}else if(origin.x < 0) {
-						z = 15-z;
-					}else if(origin.z < 0) {
-						x = 15-x;
-					}
-					
-					player.SetTerrainHeight(currentChunk.heights[x][z] + 1);
-					//System.out.println("New Height: " + currentChunk.heights[x][z] + 1);
-					
-					break;
-				}
-			}
-			
+			Collisions();
 			
 			camera.Move();
 			player.Move();
+			
 			player.Spawn();
 			
-			
-			for(Entity entity : entities) {
-				if(entity.GetVisibility()) {
-					renderer.ProcessEntity(entity);
-				}
-			}
-			
-			//Cannot see entity until it has spawned, because it does not exist in the entity list
-			if(Keyboard.isKeyDown(Keyboard.KEY_1)) {	
-				testEntity.Spawn();
-				
-			}
-			
-			if(Keyboard.isKeyDown(Keyboard.KEY_2)) {
-				testEntity.Despawn();
-				
-			}
-			
 			//Creating Entity data from terrain chunk data
-			if(indexEntity < terrainChunks.size()) {
+			if(chunkIndex < terrainChunks.size()) {
 				RawModel chunkModel = loader.LoadTerrainToVAO(
-						terrainChunks.get(indexEntity).positions, 
-						terrainChunks.get(indexEntity).uvs, 
-						terrainChunks.get(indexEntity).normals);
+						terrainChunks.get(chunkIndex).positions, 
+						terrainChunks.get(chunkIndex).uvs, 
+						terrainChunks.get(chunkIndex).normals);
 				
 				TexturedModel texturedChunkModel = new TexturedModel(chunkModel, new ModelTexture(loader.LoadTexture("dirt")));
 				ModelTexture chunkTexture = texturedChunkModel.GetTexture();
@@ -201,49 +139,19 @@ public class MainGameLoop {
 				//Prevents terrain rendering strangely
 				chunkTexture.SetTransparencyState(true);
 				
-				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(indexEntity).chunk.origin, 0, 0, 0, 1, true);
+				Entity chunkEntity = new Entity(texturedChunkModel, terrainChunks.get(chunkIndex).chunk.origin, 0, 0, 0, 1, true);
 				terrainEntities.add(chunkEntity);
 
 				//clearing arrays (important for performance reasons)
-				terrainChunks.get(indexEntity).positions = null;
-				terrainChunks.get(indexEntity).normals = null;
-				terrainChunks.get(indexEntity).uvs = null;
+				terrainChunks.get(chunkIndex).positions = null;
+				terrainChunks.get(chunkIndex).normals = null;
+				terrainChunks.get(chunkIndex).uvs = null;
 				
-				indexEntity++;
+				chunkIndex++;
 			}
 			
-			//Rendering terrainEntities if within range
-			for(int i = 0; i < terrainEntities.size(); i++) {
-				
-				Vector3f origin = terrainEntities.get(i).GetPosition();
-				
-				int distX = (int) (playerPos.x - origin.x);
-				int distZ = (int) (playerPos.z - origin.z);
-				
-				//Prevents negative position
-		    	distX = distX < 0 ? -distX : distX;
-		    	distZ = distZ < 0 ? -distZ : distZ;
-				
-		    	//Spawns terrain entity if within render distance
-				if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-					terrainEntities.get(i).Spawn();
-					if(terrainEntities.get(i).GetVisibility()) {
-						renderer.ProcessEntity(terrainEntities.get(i));
-					}
-				//Despawns terrain entity if out of render distance
-				}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
-					terrainEntities.get(i).Despawn();
-					if(terrainEntities.get(i).GetVisibility()) {
-						renderer.ProcessEntity(terrainEntities.get(i));
-					}
-				}
-			}
+			Render();
 			
-			//Main render method
-			renderer.Render(sun, camera);
-			
-			//Update display
-			DisplayManager.UpdateDisplay();
 		}
 		
 		//Close game and clear arrays
@@ -254,6 +162,116 @@ public class MainGameLoop {
 		renderer.CleanUp();
 		loader.CleanUp();
 		DisplayManager.CloseDisplay();
+	}
+	
+	public static void Collisions() {
+		//Player and Camera functions
+		playerPos = player.GetPosition();
+		
+		Chunk currentChunk;
+		
+		//For each chunk
+		for(int i = 0; i < terrainChunks.size(); i++) {
+			currentChunk = terrainChunks.get(i).chunk;
+			
+			//Get chunk origin
+			Vector3f origin = currentChunk.origin;
+			
+	    	//If player is standing in this chunk
+			if((playerPos.x >= origin.x && playerPos.x <= origin.x + CHUNK_SIZE) && (playerPos.z >= origin.z && playerPos.z <= origin.z + CHUNK_SIZE)) {
+				
+				//Calculate player position
+				Vector3f playerChunkPos = new Vector3f(playerPos.x % CHUNK_SIZE, 0, playerPos.x % CHUNK_SIZE);
+				
+				int x = (int) playerChunkPos.x;
+				int z = (int) playerChunkPos.z;
+				
+				//Prevents negative position
+		    	x = x < 0 ? -x : x;
+		    	z = z < 0 ? -z : z;
+				
+		    	//System.out.println("X: " + x + " Z:" + z);
+				//System.out.println(origin);
+				
+				//Negative chunks
+				if(origin.x < 0 && origin.z < 0) {
+					x = 15-x;
+					z = 15-z;
+				}else if(origin.x < 0) {
+					z = 15-z;
+				}else if(origin.z < 0) {
+					x = 15-x;
+				}
+				
+				player.SetTerrainHeight(currentChunk.heights[x][z] + 1);
+				//System.out.println("New Height: " + currentChunk.heights[x][z] + 1);
+				
+				break;
+			}
+		}
+	}
+	
+	public static void Render() {
+		
+		//Rendering terrainEntities if within range
+		for(int i = 0; i < terrainEntities.size(); i++) {
+			
+			Vector3f origin = terrainEntities.get(i).GetPosition();
+			
+			int distX = (int) (playerPos.x - origin.x);
+			int distZ = (int) (playerPos.z - origin.z);
+			
+			//Prevents negative position
+	    	distX = distX < 0 ? -distX : distX;
+	    	distZ = distZ < 0 ? -distZ : distZ;
+			
+	    	//Spawns terrain entity if within render distance
+			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
+				terrainEntities.get(i).Spawn();
+				if(terrainEntities.get(i).GetVisibility()) {
+					renderer.ProcessEntity(terrainEntities.get(i));
+				}
+			//Despawns terrain entity if out of render distance
+			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
+				terrainEntities.get(i).Despawn();
+				if(terrainEntities.get(i).GetVisibility()) {
+					renderer.ProcessEntity(terrainEntities.get(i));
+				}
+			}
+		}
+		
+		//Rendering entities if within range
+		for(int i = 0; i < entities.size(); i++) {
+			
+			Vector3f origin = entities.get(i).GetPosition();
+			
+			int distX = (int) (playerPos.x - origin.x);
+			int distZ = (int) (playerPos.z - origin.z);
+			
+			//Prevents negative position
+	    	distX = distX < 0 ? -distX : distX;
+	    	distZ = distZ < 0 ? -distZ : distZ;
+			
+	    	//Spawns entity if within render distance
+			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
+				entities.get(i).Spawn();
+				if(entities.get(i).GetVisibility()) {
+					renderer.ProcessEntity(entities.get(i));
+				}
+			//Despawns entity if out of render distance
+			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
+				entities.get(i).Despawn();
+				if(entities.get(i).GetVisibility()) {
+					renderer.ProcessEntity(entities.get(i));
+				}
+			}
+		}
+		
+		//Main render method
+		renderer.Render(sun, camera);
+		
+		//Update display
+		DisplayManager.UpdateDisplay();
 	}
 	
 	public static void ChunkLoading() {
