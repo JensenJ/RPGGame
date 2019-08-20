@@ -3,6 +3,7 @@ package entities;
 import org.lwjgl.util.vector.Vector3f;
 
 import models.TexturedModel;
+import render.DisplayManager;
 
 public class Entity {
 
@@ -11,7 +12,10 @@ public class Entity {
 	private Vector3f position;
 	private float rotX, rotY, rotZ;
 	private float scale;
-	private boolean ShouldDrawInArrays = false;
+	private boolean shouldDrawInArrays = false;
+	private boolean isVisible = false;
+	
+	private float originalScale;
 	
 	//Constructor
 	public Entity(TexturedModel model, Vector3f position, float rotX, float rotY, float rotZ, float scale, boolean arrayDrawing) {
@@ -21,7 +25,9 @@ public class Entity {
 		this.rotY = rotY;
 		this.rotZ = rotZ;
 		this.scale = scale;
-		this.ShouldDrawInArrays = arrayDrawing;
+		this.shouldDrawInArrays = arrayDrawing;
+		this.isVisible = false;
+		this.originalScale = scale;
 	}
 	
 	//Position Increase
@@ -38,6 +44,37 @@ public class Entity {
 		this.rotZ+=z;
 	}
 
+	public void IncreaseScale(float scale) {
+		this.scale+=scale;
+	}
+	
+	public boolean Spawn() {
+		//Set visible
+		SetVisibility(true);
+		//Scale object until it is >= the original scale
+		if(this.scale < this.originalScale) {
+			IncreaseScale(0.5f * DisplayManager.GetFrameTimeSeconds());
+			return false;
+		}else {
+			//Set final settings
+			SetScale(originalScale);
+			return true;
+		}
+	}
+	
+	public boolean Despawn() {
+		//Scale object down until scale < 0
+		if(this.scale > 0) {
+			IncreaseScale(-0.5f * DisplayManager.GetFrameTimeSeconds());
+			return false;
+		}else {
+			//When scale is < 0, set final settings, removes strange scaling issues when rescaling back up
+			SetScale(0);
+			SetVisibility(false);
+			return true;
+		}
+	}
+	
 	//Getters and Setters
 	public TexturedModel GetModel() {
 		return model;
@@ -88,12 +125,19 @@ public class Entity {
 	}
 
 	public boolean GetShouldDrawInArrays() {
-		return ShouldDrawInArrays;
+		return shouldDrawInArrays;
 	}
 
 	public void SetShouldDrawInArrays(boolean shouldDrawInArrays) {
-		ShouldDrawInArrays = shouldDrawInArrays;
+		this.shouldDrawInArrays = shouldDrawInArrays;
 	}
 	
+	public boolean GetVisibility() {
+		return isVisible;
+	}
+	
+	public void SetVisibility(boolean visibility) {
+		this.isVisible = visibility;
+	}
 	
 }

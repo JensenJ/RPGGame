@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
@@ -45,6 +46,9 @@ public class MainGameLoop {
 	private static Camera camera;
 	private static MasterRenderer renderer;
 	
+	//Temporary test variables
+	private static Entity testEntity;
+	
 	public static void Initialise() {
 		
 		//Creates window and loader
@@ -82,7 +86,11 @@ public class MainGameLoop {
 		
 		//Player and Camera
 		player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
+		player.Spawn();
 		camera = new Camera(player);
+		
+		//Entities
+		testEntity = new Entity(texturedModel, new Vector3f(0, 20, 0), 0, 45, 0, 1, false);
 		
 		//Renderer
 		renderer = new MasterRenderer();
@@ -96,6 +104,11 @@ public class MainGameLoop {
 		
 		//Chunk entities
 		List<Entity> terrainEntities = new ArrayList<Entity>();
+		List<Entity> entities = new ArrayList<Entity>();
+		
+		entities.add(player);
+		entities.add(testEntity);
+		
 		
 		// MAIN LOOP
 		//index for chunks
@@ -132,8 +145,8 @@ public class MainGameLoop {
 			    	x = x < 0 ? -x : x;
 			    	z = z < 0 ? -z : z;
 					
-			    	System.out.println("X: " + x + " Z:" + z);
-					System.out.println(origin);
+			    	//System.out.println("X: " + x + " Z:" + z);
+					//System.out.println(origin);
 					
 					//Negative chunks
 					if(origin.x < 0 && origin.z < 0) {
@@ -146,7 +159,7 @@ public class MainGameLoop {
 					}
 					
 					player.SetTerrainHeight(currentChunk.heights[x][z] + 1);
-					System.out.println("New Height: " + currentChunk.heights[x][z] + 1);
+					//System.out.println("New Height: " + currentChunk.heights[x][z] + 1);
 					
 					break;
 				}
@@ -155,7 +168,23 @@ public class MainGameLoop {
 			
 			camera.Move();
 			player.Move();
-			renderer.ProcessEntity(player);
+			
+			for(Entity entity : entities) {
+				if(entity.GetVisibility()) {
+					renderer.ProcessEntity(entity);
+				}
+			}
+			
+			//Cannot see entity until it has spawned, because it does not exist in the entity list
+			if(Keyboard.isKeyDown(Keyboard.KEY_1)) {	
+				testEntity.Spawn();
+				
+			}
+			
+			if(Keyboard.isKeyDown(Keyboard.KEY_2)) {
+				testEntity.Despawn();
+				
+			}
 			
 			//Creating Entity data from terrain chunk data
 			if(indexEntity < terrainChunks.size()) {
@@ -180,11 +209,6 @@ public class MainGameLoop {
 				
 				indexEntity++;
 			}
-			
-			
-			
-			
-
 			
 			//Rendering terrainEntities if within range
 			for(int i = 0; i < terrainEntities.size(); i++) {
