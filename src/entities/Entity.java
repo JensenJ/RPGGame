@@ -24,7 +24,7 @@ public class Entity {
 		this.rotX = rotX;
 		this.rotY = rotY;
 		this.rotZ = rotZ;
-		this.scale = scale;
+		this.scale = 0;
 		this.shouldDrawInArrays = arrayDrawing;
 		this.isVisible = false;
 		this.originalScale = scale;

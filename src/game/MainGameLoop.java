@@ -168,6 +168,8 @@ public class MainGameLoop {
 			
 			camera.Move();
 			player.Move();
+			player.Spawn();
+			
 			
 			for(Entity entity : entities) {
 				if(entity.GetVisibility()) {
@@ -218,16 +220,22 @@ public class MainGameLoop {
 				int distX = (int) (playerPos.x - origin.x);
 				int distZ = (int) (playerPos.z - origin.z);
 				
-				if(distX < 0) {
-					distX = -distX;
-				}
+				//Prevents negative position
+		    	distX = distX < 0 ? -distX : distX;
+		    	distZ = distZ < 0 ? -distZ : distZ;
 				
-				if(distZ < 0) {
-					distZ = -distZ;
-				}
-				
+		    	//Spawns terrain entity if within render distance
 				if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-					renderer.ProcessEntity(terrainEntities.get(i));
+					terrainEntities.get(i).Spawn();
+					if(terrainEntities.get(i).GetVisibility()) {
+						renderer.ProcessEntity(terrainEntities.get(i));
+					}
+				//Despawns terrain entity if out of render distance
+				}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
+					terrainEntities.get(i).Despawn();
+					if(terrainEntities.get(i).GetVisibility()) {
+						renderer.ProcessEntity(terrainEntities.get(i));
+					}
 				}
 			}
 			
