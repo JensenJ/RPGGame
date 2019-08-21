@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.lwjgl.LWJGLException;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector3f;
@@ -13,6 +12,8 @@ import org.lwjgl.util.vector.Vector3f;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
+import entities.ParticleEmitter;
+import entities.ParticleEmitter.PARTICLETYPE;
 import entities.Player;
 import models.RawModel;
 import models.TexturedModel;
@@ -41,6 +42,7 @@ public class MainGameLoop {
 	
 	private static List<Entity> terrainEntities;
 	private static List<Entity> entities;
+	private static List<Entity> particles;
 	
 	//References
 	private static Loader loader;
@@ -51,6 +53,7 @@ public class MainGameLoop {
 	
 	//Temporary test variables
 	private static Entity testEntity;
+	private static ParticleEmitter testEmitter;
 	
 	public static void Initialise() {
 		
@@ -93,8 +96,8 @@ public class MainGameLoop {
 		camera = new Camera(player);
 		
 		//Entities
-		testEntity = new Entity(texturedModel, new Vector3f(0, 20, 0), 0, 45, 0, 1, false);
-		
+		testEntity = new Entity(texturedModel, new Vector3f(0, 15, 0), 0, 45, 0, 1, false);
+		testEmitter = new ParticleEmitter(testEntity, 7, 6, 2, 0.5f, 0.5f, 2f, PARTICLETYPE.RISING, texturedModel);
 		//Renderer
 		renderer = new MasterRenderer();
 	}
@@ -109,22 +112,22 @@ public class MainGameLoop {
 		terrainEntities = new ArrayList<Entity>();
 		entities = new ArrayList<Entity>();
 		
+		
 		entities.add(player);
-		entities.add(testEntity);
+		entities.add(testEmitter);
 		
-		
+		testEmitter.SetActiveState(true);
+		particles = testEmitter.InitParticles();
 		// MAIN LOOP
 		//index for chunks
 		int chunkIndex = 0;
-		while(!Display.isCloseRequested()) {
-			
-			
-			Collisions();
-			
+		while(!Display.isCloseRequested()) {	
 			camera.Move();
 			player.Move();
 			
-			player.Spawn();
+			Collisions();
+			
+			testEmitter.UpdateParticles(particles);
 			
 			//Creating Entity data from terrain chunk data
 			if(chunkIndex < terrainChunks.size()) {
@@ -263,6 +266,31 @@ public class MainGameLoop {
 				entities.get(i).Despawn();
 				if(entities.get(i).GetVisibility()) {
 					renderer.ProcessEntity(entities.get(i));
+				}
+			}
+		}
+		
+		//Rendering particles if within range and active
+		for(int i = 0; i < particles.size(); i++) {
+			
+			Vector3f origin = particles.get(i).GetPosition();
+			
+			int distX = (int) (playerPos.x - origin.x);
+			int distZ = (int) (playerPos.z - origin.z);
+			
+			//Prevents negative position
+	    	distX = distX < 0 ? -distX : distX;
+	    	distZ = distZ < 0 ? -distZ : distZ;
+			
+	    	//Spawns particle if within render distance
+			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
+				if(particles.get(i).GetVisibility()) {
+					renderer.ProcessEntity(particles.get(i));
+				}
+			//Despawns particle if out of render distance
+			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
+				if(particles.get(i).GetVisibility()) {
+					renderer.ProcessEntity(particles.get(i));
 				}
 			}
 		}

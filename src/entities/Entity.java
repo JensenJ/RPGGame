@@ -124,6 +124,14 @@ public class Entity {
 		this.scale = scale;
 	}
 
+	public float GetOriginalScale() {
+		return originalScale;
+	}
+	
+	public void SetOriginalScale(float originalScale) {
+		this.originalScale = originalScale;
+	}
+	
 	public boolean GetShouldDrawInArrays() {
 		return shouldDrawInArrays;
 	}
