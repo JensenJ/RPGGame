@@ -92,12 +92,12 @@ public class MainGameLoop {
 		
 		//Player and Camera
 		player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
-		player.Spawn();
+		player.Spawn(0.5f);
 		camera = new Camera(player);
 		
 		//Entities
 		testEntity = new Entity(texturedModel, new Vector3f(0, 15, 0), 0, 45, 0, 1, false);
-		testEmitter = new ParticleEmitter(testEntity, 7, 6, 2, 0.5f, 0.5f, 2f, PARTICLETYPE.RISING, texturedModel);
+		testEmitter = new ParticleEmitter(testEntity, 17, 6, 2, 0.75f, 1.0f, 5f, PARTICLETYPE.PULSE, texturedModel);
 		//Renderer
 		renderer = new MasterRenderer();
 	}
@@ -159,17 +159,7 @@ public class MainGameLoop {
 			
 		}
 		
-		//Close game and clear arrays
-		Mouse.destroy();
-		isRunning = false;
-		terrainChunks.clear();
-		usedPositions.clear();
-		terrainEntities.clear();
-		entities.clear();
-		particleEmitters.clear();
-		renderer.CleanUp();
-		loader.CleanUp();
-		DisplayManager.CloseDisplay();
+		EndGame();
 	}
 	
 	public static void Collisions() {
@@ -235,13 +225,13 @@ public class MainGameLoop {
 			
 	    	//Spawns terrain entity if within render distance
 			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-				terrainEntities.get(i).Spawn();
+				terrainEntities.get(i).Spawn(1.0f);
 				if(terrainEntities.get(i).GetVisibility()) {
 					renderer.ProcessEntity(terrainEntities.get(i));
 				}
 			//Despawns terrain entity if out of render distance
 			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
-				terrainEntities.get(i).Despawn();
+				terrainEntities.get(i).Despawn(1.0f);
 				if(terrainEntities.get(i).GetVisibility()) {
 					renderer.ProcessEntity(terrainEntities.get(i));
 				}
@@ -262,13 +252,13 @@ public class MainGameLoop {
 			
 	    	//Spawns entity if within render distance
 			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-				entities.get(i).Spawn();
+				entities.get(i).Spawn(1.0f);
 				if(entities.get(i).GetVisibility()) {
 					renderer.ProcessEntity(entities.get(i));
 				}
 			//Despawns entity if out of render distance
 			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
-				entities.get(i).Despawn();
+				entities.get(i).Despawn(1.0f);
 				if(entities.get(i).GetVisibility()) {
 					renderer.ProcessEntity(entities.get(i));
 				}
@@ -291,7 +281,7 @@ public class MainGameLoop {
 	    	//Spawns particle if within render distance
 			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
 				particleEmitters.get(i).SetActiveState(true);
-				particleEmitters.get(i).Spawn();
+				particleEmitters.get(i).Spawn(1.0f);
 				if(particleEmitters.get(i).GetVisibility()) {
 					renderer.ProcessEntity(particleEmitters.get(i));
 					for(Entity particle : particles) {
@@ -303,7 +293,7 @@ public class MainGameLoop {
 			//Despawns particle if out of render distance
 			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) {
 				particleEmitters.get(i).SetActiveState(false);
-				particleEmitters.get(i).Despawn();
+				particleEmitters.get(i).Despawn(1.0f);
 				if(particleEmitters.get(i).GetVisibility()) {
 					renderer.ProcessEntity(particleEmitters.get(i));
 					for(Entity particle : particles) {
@@ -366,5 +356,22 @@ public class MainGameLoop {
 				}
 			}
 		}).start();
+	}
+	
+	public static void EndGame() {
+		//Close game and clear arrays
+		Mouse.destroy();
+		isRunning = false;
+		terrainChunks.clear();
+		usedPositions.clear();
+		terrainEntities.clear();
+		entities.clear();
+		for(int i = 0; i < particleEmitters.size(); i++) {
+			particleEmitters.get(i).CleanUp();
+		}
+		particleEmitters.clear();
+		renderer.CleanUp();
+		loader.CleanUp();
+		DisplayManager.CloseDisplay();
 	}
 }

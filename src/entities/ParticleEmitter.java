@@ -25,7 +25,7 @@ public class ParticleEmitter extends Entity {
 	
 	//Different particle effect types
 	public static enum PARTICLETYPE {
-		RISING, SWIRL, IMPACT
+		RISING, SWIRL, PULSE
 	};
 	
 	public PARTICLETYPE type;
@@ -57,10 +57,20 @@ public class ParticleEmitter extends Entity {
 		particles = new ArrayList<Entity>();
 		
 		//Set spawn point for every particle and add to particle list
-		for(int i = 0; i < particleDensity; i++) {
-			Vector3f particlePosition = GenerateParticlePosition();
-			Entity particle = new Entity(particleModel, particlePosition, 0, 0, 0, particleScale, false);
-			particles.add(particle);
+		if(type == PARTICLETYPE.RISING) {
+			for(int i = 0; i < particleDensity; i++) {
+				Vector3f particlePosition = GenerateRisingParticlePosition();
+				Entity particle = new Entity(particleModel, particlePosition, 0, 0, 0, particleScale, false);
+				particles.add(particle);
+			}
+		}else if(type == PARTICLETYPE.SWIRL) {
+			
+		}else if(type == PARTICLETYPE.PULSE) {
+			for(int i = 0; i < particleDensity; i++) {
+				Vector3f particlePosition = GeneratePulseParticlePosition();
+				Entity particle = new Entity(particleModel, particlePosition, 0, 0, 0, particleScale, false);
+				particles.add(particle);
+			}
 		}
 		
 		//Return particle list
@@ -81,32 +91,65 @@ public class ParticleEmitter extends Entity {
 					Vector3f objectPos = super.GetPosition();
 					//If particle is beyond the travel distance, despawn it
 					if(particlePos.y - (objectPos.y - particleSpawnHeight) > particleTravelDist) {
-						particle.Despawn();
+						particle.Despawn(0.5f);
 						//Once particle is no longer visable, reset its position
 						if(particle.GetVisibility() == false) {
-							Vector3f position = GenerateParticlePosition();
+							Vector3f position = GenerateRisingParticlePosition();
 							particle.SetPosition(position);
 						}
 					}else {
 						//Spawn / respawn particle after despawning
-						particle.Spawn();
+						particle.Spawn(0.5f);
 					}
-					
 				}
 			}else if(type == PARTICLETYPE.SWIRL) {
 				//Swirl code
-			}else if(type == PARTICLETYPE.IMPACT) {
-				//Impact code
+			}else if(type == PARTICLETYPE.PULSE) {
+				for(int i = 0; i < particles.size(); i++) {
+					Entity particle = particles.get(i);
+					float angle = (360 / particleDensity) * i;
+					
+					float forwardDistance = particleSpeed * DisplayManager.GetFrameTimeSeconds();
+					float fx = (float) (forwardDistance * Math.sin(Math.toRadians(angle)));
+					float fz = (float) (forwardDistance * Math.cos(Math.toRadians(angle)));
+					particle.IncreasePosition(fx, 0, fz);
+					
+					//particle.IncreasePosition(particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0, 0);
+					Vector3f particlePos = particle.GetPosition();
+					Vector3f objectPos = super.GetPosition();
+					
+					float xObject = objectPos.x;
+					float zObject = objectPos.z;
+					
+					//Particle pos
+					float x = particlePos.x;
+					float z = particlePos.z;
+					
+					//Prevents negatives
+					x = x < 0 ? -x : x;
+					z = z < 0 ? -z : z;
+					
+					float distanceTravelled = (x - xObject) + (z - zObject);
+					if(distanceTravelled > particleTravelDist) {
+						particle.Despawn(1.0f);
+						if(particle.GetVisibility() == false) {
+							Vector3f position = GeneratePulseParticlePosition();
+							particle.SetPosition(position);
+						}
+					}else {
+						particle.Spawn(1.0f);
+					}
+				}
 			}
 		}else {
 			for(Entity particle: particles) {
-				particle.Despawn();
+				particle.Despawn(1.0f);
 			}
 		}
 	}
 	
-	//Randomly generates a particles position
-	private Vector3f GenerateParticlePosition() {
+	//Randomly generates a particles position for the rising particle type
+	private Vector3f GenerateRisingParticlePosition() {
 		Random random = new Random();
 		Vector3f position = super.GetPosition();
 		float x = particleRadius * random.nextFloat();
@@ -128,6 +171,16 @@ public class ParticleEmitter extends Entity {
 		//Create final position and return it
 		Vector3f particlePosition = new Vector3f(position.x + x, position.y + particleSpawnHeight + y, position.z + z);
 		return particlePosition;
+	}
+	
+	private Vector3f GeneratePulseParticlePosition() {
+		Vector3f position = super.GetPosition();
+		Vector3f particlePosition = new Vector3f(position.x, position.y + particleSpawnHeight, position.z);
+		return particlePosition;
+	}
+	
+	public void CleanUp() {
+		particles.clear();
 	}
 	
 	//Getters and setters

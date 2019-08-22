@@ -48,12 +48,12 @@ public class Entity {
 		this.scale+=scale;
 	}
 	
-	public boolean Spawn() {
+	public boolean Spawn(float spawnSpeed) {
 		//Set visible
 		SetVisibility(true);
 		//Scale object until it is >= the original scale
 		if(this.scale < this.originalScale) {
-			IncreaseScale(0.5f * DisplayManager.GetFrameTimeSeconds());
+			IncreaseScale(spawnSpeed * DisplayManager.GetFrameTimeSeconds());
 			return false;
 		}else {
 			//Set final settings
@@ -62,10 +62,10 @@ public class Entity {
 		}
 	}
 	
-	public boolean Despawn() {
+	public boolean Despawn(float despawnSpeed) {
 		//Scale object down until scale < 0
 		if(this.scale > 0) {
-			IncreaseScale(-0.5f * DisplayManager.GetFrameTimeSeconds());
+			IncreaseScale(-despawnSpeed * DisplayManager.GetFrameTimeSeconds());
 			return false;
 		}else {
 			//When scale is < 0, set final settings, removes strange scaling issues when rescaling back up
