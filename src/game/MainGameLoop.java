@@ -42,7 +42,7 @@ public class MainGameLoop {
 	
 	private static List<Entity> terrainEntities;
 	private static List<Entity> entities;
-	private static List<Entity> particles;
+	private static List<ParticleEmitter> particleEmitters;
 	
 	//References
 	private static Loader loader;
@@ -111,13 +111,15 @@ public class MainGameLoop {
 		//Chunk entities
 		terrainEntities = new ArrayList<Entity>();
 		entities = new ArrayList<Entity>();
-		
+		particleEmitters = new ArrayList<ParticleEmitter>();
 		
 		entities.add(player);
-		entities.add(testEmitter);
 		
 		testEmitter.SetActiveState(true);
-		particles = testEmitter.InitParticles();
+		testEmitter.InitParticles();
+		
+		particleEmitters.add(testEmitter);
+		
 		// MAIN LOOP
 		//index for chunks
 		int chunkIndex = 0;
@@ -127,7 +129,7 @@ public class MainGameLoop {
 			
 			Collisions();
 			
-			testEmitter.UpdateParticles(particles);
+			testEmitter.UpdateParticles();
 			
 			//Creating Entity data from terrain chunk data
 			if(chunkIndex < terrainChunks.size()) {
@@ -162,6 +164,9 @@ public class MainGameLoop {
 		isRunning = false;
 		terrainChunks.clear();
 		usedPositions.clear();
+		terrainEntities.clear();
+		entities.clear();
+		particleEmitters.clear();
 		renderer.CleanUp();
 		loader.CleanUp();
 		DisplayManager.CloseDisplay();
@@ -270,10 +275,10 @@ public class MainGameLoop {
 			}
 		}
 		
-		//Rendering particles if within range and active
-		for(int i = 0; i < particles.size(); i++) {
+		//Rendering particles and emitters if within range and active
+		for(int i = 0; i < particleEmitters.size(); i++) {
 			
-			Vector3f origin = particles.get(i).GetPosition();
+			Vector3f origin = particleEmitters.get(i).GetPosition();
 			
 			int distX = (int) (playerPos.x - origin.x);
 			int distZ = (int) (playerPos.z - origin.z);
@@ -282,15 +287,30 @@ public class MainGameLoop {
 	    	distX = distX < 0 ? -distX : distX;
 	    	distZ = distZ < 0 ? -distZ : distZ;
 			
+	    	List<Entity> particles = particleEmitters.get(i).GetParticles();
 	    	//Spawns particle if within render distance
 			if((distX <= RENDER_DISTANCE) && (distZ <= RENDER_DISTANCE)) {
-				if(particles.get(i).GetVisibility()) {
-					renderer.ProcessEntity(particles.get(i));
+				particleEmitters.get(i).SetActiveState(true);
+				particleEmitters.get(i).Spawn();
+				if(particleEmitters.get(i).GetVisibility()) {
+					renderer.ProcessEntity(particleEmitters.get(i));
+					for(Entity particle : particles) {
+						if(particle.GetVisibility()) {
+							renderer.ProcessEntity(particle);
+						}
+					}
 				}
 			//Despawns particle if out of render distance
-			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) { 
-				if(particles.get(i).GetVisibility()) {
-					renderer.ProcessEntity(particles.get(i));
+			}else if ((distX <= RENDER_DISTANCE + (2 * CHUNK_SIZE)) && (distZ <= RENDER_DISTANCE + (2 * CHUNK_SIZE))) {
+				particleEmitters.get(i).SetActiveState(false);
+				particleEmitters.get(i).Despawn();
+				if(particleEmitters.get(i).GetVisibility()) {
+					renderer.ProcessEntity(particleEmitters.get(i));
+					for(Entity particle : particles) {
+						if(particle.GetVisibility()) {
+							renderer.ProcessEntity(particle);
+						}
+					}
 				}
 			}
 		}

@@ -68,13 +68,13 @@ public class ParticleEmitter extends Entity {
 	}
 	
 	//Updates particle data, according to particle pattern type
-	public void UpdateParticles(List<Entity> particles) {
+	public void UpdateParticles() {
 		//If particles are active
 		if(isActive == true) {
 			//Different particle animations
 			if(type == PARTICLETYPE.RISING) {
 				//For each particle
-				for(Entity particle : particles) {
+				for(Entity particle : this.particles) {
 					//Increase position in y axis
 					particle.IncreasePosition(0, particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0);
 					Vector3f particlePos = particle.GetPosition();
@@ -194,5 +194,16 @@ public class ParticleEmitter extends Entity {
 	public void SetActiveState(boolean active) {
 		this.isActive = active;
 	}
+
+
+	public List<Entity> GetParticles() {
+		return particles;
+	}
+
+
+	public void SetParticles(List<Entity> particles) {
+		this.particles = particles;
+	}
+	
 	
 }
