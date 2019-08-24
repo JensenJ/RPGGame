@@ -17,6 +17,7 @@ public class ParticleEmitter extends Entity {
 	private float particleScale;
 	private float particleSpawnHeight;
 	private float particleSpeed;
+	private boolean isReversed;
 	
 	private List<Entity> particles;
 	
@@ -25,14 +26,14 @@ public class ParticleEmitter extends Entity {
 	
 	//Different particle effect types
 	public static enum PARTICLETYPE {
-		RISING, SWIRL, PULSE
+		RISING, SWIRL, REPEL
 	};
 	
 	public PARTICLETYPE type;
 	
 	//Constructor
 	public ParticleEmitter(Entity entity, int particleDensity, float particleTravelDist, float particleRadius, float particleScale, 
-			float particleSpawnHeight, float particleSpeed, PARTICLETYPE particleType, TexturedModel particleModel) {
+			float particleSpawnHeight, float particleSpeed, PARTICLETYPE particleType, boolean isReversed, TexturedModel particleModel) {
 		super(entity.GetModel(), entity.GetPosition(), entity.GetRotX(), entity.GetRotY(), entity.GetRotZ(), entity.GetOriginalScale(), entity.GetShouldDrawInArrays());
 		this.particleDensity = particleDensity;
 		this.particleTravelDist = particleTravelDist;
@@ -43,7 +44,8 @@ public class ParticleEmitter extends Entity {
 		this.type = particleType;
 		this.particleModel = particleModel;
 		this.isActive = false;
-		
+		this.isReversed = isReversed;
+		InitParticles();
 	}
 	
 	
@@ -53,7 +55,7 @@ public class ParticleEmitter extends Entity {
 	}
 	
 	//Returns a list of entities to render
-	public List<Entity> InitParticles() {
+	public void InitParticles() {
 		particles = new ArrayList<Entity>();
 		
 		//Set spawn point for every particle and add to particle list
@@ -65,16 +67,13 @@ public class ParticleEmitter extends Entity {
 			}
 		}else if(type == PARTICLETYPE.SWIRL) {
 			
-		}else if(type == PARTICLETYPE.PULSE) {
+		}else if(type == PARTICLETYPE.REPEL) {
 			for(int i = 0; i < particleDensity; i++) {
-				Vector3f particlePosition = GeneratePulseParticlePosition();
+				Vector3f particlePosition = GenerateRepelParticlePosition();
 				Entity particle = new Entity(particleModel, particlePosition, 0, 0, 0, particleScale, false);
 				particles.add(particle);
 			}
 		}
-		
-		//Return particle list
-		return particles;
 	}
 	
 	//Updates particle data, according to particle pattern type
@@ -83,67 +82,76 @@ public class ParticleEmitter extends Entity {
 		if(isActive == true) {
 			//Different particle animations
 			if(type == PARTICLETYPE.RISING) {
-				//For each particle
-				for(Entity particle : this.particles) {
-					//Increase position in y axis
-					particle.IncreasePosition(0, particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0);
-					Vector3f particlePos = particle.GetPosition();
-					Vector3f objectPos = super.GetPosition();
-					//If particle is beyond the travel distance, despawn it
-					if(particlePos.y - (objectPos.y - particleSpawnHeight) > particleTravelDist) {
-						particle.Despawn(0.5f);
-						//Once particle is no longer visable, reset its position
-						if(particle.GetVisibility() == false) {
-							Vector3f position = GenerateRisingParticlePosition();
-							particle.SetPosition(position);
-						}
-					}else {
-						//Spawn / respawn particle after despawning
-						particle.Spawn(0.5f);
-					}
-				}
+				UpdateRisingParticlePosition();
 			}else if(type == PARTICLETYPE.SWIRL) {
 				//Swirl code
-			}else if(type == PARTICLETYPE.PULSE) {
-				for(int i = 0; i < particles.size(); i++) {
-					Entity particle = particles.get(i);
-					float angle = (360 / particleDensity) * i;
-					
-					float forwardDistance = particleSpeed * DisplayManager.GetFrameTimeSeconds();
-					float fx = (float) (forwardDistance * Math.sin(Math.toRadians(angle)));
-					float fz = (float) (forwardDistance * Math.cos(Math.toRadians(angle)));
-					particle.IncreasePosition(fx, 0, fz);
-					
-					//particle.IncreasePosition(particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0, 0);
-					Vector3f particlePos = particle.GetPosition();
-					Vector3f objectPos = super.GetPosition();
-					
-					float xObject = objectPos.x;
-					float zObject = objectPos.z;
-					
-					//Particle pos
-					float x = particlePos.x;
-					float z = particlePos.z;
-					
-					//Prevents negatives
-					x = x < 0 ? -x : x;
-					z = z < 0 ? -z : z;
-					
-					float distanceTravelled = (x - xObject) + (z - zObject);
-					if(distanceTravelled > particleTravelDist) {
-						particle.Despawn(1.0f);
-						if(particle.GetVisibility() == false) {
-							Vector3f position = GeneratePulseParticlePosition();
-							particle.SetPosition(position);
-						}
-					}else {
-						particle.Spawn(1.0f);
-					}
-				}
+			}else if(type == PARTICLETYPE.REPEL) {
+				UpdateRepelParticlePosition();
 			}
 		}else {
 			for(Entity particle: particles) {
 				particle.Despawn(1.0f);
+			}
+		}
+	}
+	
+	private void UpdateRisingParticlePosition() {
+		//For each particle
+		for(Entity particle : this.particles) {
+			//Increase position in y axis
+			particle.IncreasePosition(0, particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0);
+			Vector3f particlePos = particle.GetPosition();
+			Vector3f objectPos = super.GetPosition();
+			//If particle is beyond the travel distance, despawn it
+			if(particlePos.y - (objectPos.y - particleSpawnHeight) > particleTravelDist) {
+				particle.Despawn(0.5f);
+				//Once particle is no longer visable, reset its position
+				if(particle.GetVisibility() == false) {
+					Vector3f position = GenerateRisingParticlePosition();
+					particle.SetPosition(position);
+				}
+			}else {
+				//Spawn / respawn particle after despawning
+				particle.Spawn(0.5f);
+			}
+		}
+	}
+	
+	private void UpdateRepelParticlePosition() {
+		for(int i = 0; i < particles.size(); i++) {
+			Entity particle = particles.get(i);
+			float angle = (360 / particleDensity) * i;
+			
+			float forwardDistance = particleSpeed * DisplayManager.GetFrameTimeSeconds();
+			float fx = (float) (forwardDistance * Math.sin(Math.toRadians(angle)));
+			float fz = (float) (forwardDistance * Math.cos(Math.toRadians(angle)));
+			particle.IncreasePosition(fx, 0, fz);
+			
+			//particle.IncreasePosition(particleSpeed * DisplayManager.GetFrameTimeSeconds(), 0, 0);
+			Vector3f particlePos = particle.GetPosition();
+			Vector3f objectPos = super.GetPosition();
+			
+			float xObject = objectPos.x;
+			float zObject = objectPos.z;
+			
+			//Particle pos
+			float x = particlePos.x;
+			float z = particlePos.z;
+			
+			//Prevents negatives
+			x = x < 0 ? -x : x;
+			z = z < 0 ? -z : z;
+			
+			//Reset
+			float distanceTravelled = (x - xObject) + (z - zObject);
+			if(distanceTravelled > particleTravelDist) {
+				particle.Despawn(1.0f);
+				if(particle.GetVisibility() == false) {
+					Vector3f position = GenerateRepelParticlePosition();
+					particle.SetPosition(position);
+				}
+			}else {
+				particle.Spawn(1.0f);
 			}
 		}
 	}
@@ -173,7 +181,7 @@ public class ParticleEmitter extends Entity {
 		return particlePosition;
 	}
 	
-	private Vector3f GeneratePulseParticlePosition() {
+	private Vector3f GenerateRepelParticlePosition() {
 		Vector3f position = super.GetPosition();
 		Vector3f particlePosition = new Vector3f(position.x, position.y + particleSpawnHeight, position.z);
 		return particlePosition;
@@ -256,6 +264,16 @@ public class ParticleEmitter extends Entity {
 
 	public void SetParticles(List<Entity> particles) {
 		this.particles = particles;
+	}
+
+
+	public boolean GetReversedState() {
+		return isReversed;
+	}
+
+
+	public void SetReversedState(boolean isReversed) {
+		this.isReversed = isReversed;
 	}
 	
 	

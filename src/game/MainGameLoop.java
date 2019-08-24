@@ -97,7 +97,7 @@ public class MainGameLoop {
 		
 		//Entities
 		testEntity = new Entity(texturedModel, new Vector3f(0, 15, 0), 0, 45, 0, 1, false);
-		testEmitter = new ParticleEmitter(testEntity, 17, 6, 2, 0.75f, 1.0f, 5f, PARTICLETYPE.PULSE, texturedModel);
+		testEmitter = new ParticleEmitter(testEntity, 17, 6, 2, 0.75f, 1.0f, 5f, PARTICLETYPE.REPEL, false, texturedModel);
 		//Renderer
 		renderer = new MasterRenderer();
 	}
@@ -116,7 +116,6 @@ public class MainGameLoop {
 		entities.add(player);
 		
 		testEmitter.SetActiveState(true);
-		testEmitter.InitParticles();
 		
 		particleEmitters.add(testEmitter);
 		
