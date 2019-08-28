@@ -92,12 +92,11 @@ public class MainGameLoop {
 		
 		//Player and Camera
 		player = new Player(texturedModel, new Vector3f(0, 0, 0), 0, 180, 0, 1);
-		player.Spawn(0.5f);
 		camera = new Camera(player);
 		
 		//Entities
 		testEntity = new Entity(texturedModel, new Vector3f(0, 15, 0), 0, 45, 0, 1, false);
-		testEmitter = new ParticleEmitter(testEntity, 17, 6, 2, 0.75f, 1.0f, 5f, PARTICLETYPE.REPEL, false, texturedModel);
+		testEmitter = new ParticleEmitter(testEntity, 17, 6, 2, 0.75f, 1.0f, 5f, PARTICLETYPE.RISING, texturedModel);
 		//Renderer
 		renderer = new MasterRenderer();
 	}

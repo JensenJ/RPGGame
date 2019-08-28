@@ -17,8 +17,7 @@ public class ParticleEmitter extends Entity {
 	private float particleScale;
 	private float particleSpawnHeight;
 	private float particleSpeed;
-	private boolean isReversed;
-	
+
 	private List<Entity> particles;
 	
 	private boolean isActive;
@@ -33,7 +32,7 @@ public class ParticleEmitter extends Entity {
 	
 	//Constructor
 	public ParticleEmitter(Entity entity, int particleDensity, float particleTravelDist, float particleRadius, float particleScale, 
-			float particleSpawnHeight, float particleSpeed, PARTICLETYPE particleType, boolean isReversed, TexturedModel particleModel) {
+			float particleSpawnHeight, float particleSpeed, PARTICLETYPE particleType, TexturedModel particleModel) {
 		super(entity.GetModel(), entity.GetPosition(), entity.GetRotX(), entity.GetRotY(), entity.GetRotZ(), entity.GetOriginalScale(), entity.GetShouldDrawInArrays());
 		this.particleDensity = particleDensity;
 		this.particleTravelDist = particleTravelDist;
@@ -44,7 +43,6 @@ public class ParticleEmitter extends Entity {
 		this.type = particleType;
 		this.particleModel = particleModel;
 		this.isActive = false;
-		this.isReversed = isReversed;
 		InitParticles();
 	}
 	
@@ -265,16 +263,5 @@ public class ParticleEmitter extends Entity {
 	public void SetParticles(List<Entity> particles) {
 		this.particles = particles;
 	}
-
-
-	public boolean GetReversedState() {
-		return isReversed;
-	}
-
-
-	public void SetReversedState(boolean isReversed) {
-		this.isReversed = isReversed;
-	}
-	
 	
 }
